@@ -1,4 +1,12 @@
 # frozen_string_literal: true
 
-AdminUser.create!(email: 'admin@example.com', password: 'password') if Rails.env.development?
-Setting.create_or_find_by!(key: 'min_version', value: '0.0')
+if Rails.env.development?
+  AdminUser.find_or_create_by!(email: 'admin@example.com') do |admin|
+    admin.password = 'password'
+  end
+end
+
+Setting.find_or_create_by!(key: 'min_version') { |s| s.value = '0.0' }
+
+require Rails.root.join('db/seeds/resume_data')
+Seeds::ResumeData.seed!

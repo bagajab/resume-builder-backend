@@ -61,6 +61,8 @@ class User < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
+  has_many :resumes, dependent: :destroy
+
   private
 
   def init_uid

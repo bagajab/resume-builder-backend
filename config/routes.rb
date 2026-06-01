@@ -16,6 +16,23 @@ Rails.application.routes.draw do
       devise_scope :user do
         resource :user, only: %i[update show]
       end
+
+      resources :templates, only: %i[index]
+
+      resources :resumes do
+        member do
+          patch :draft
+          get :export_pdf
+          post :duplicate
+        end
+
+        resource :profile, only: %i[create update], controller: 'resume_profiles'
+        resources :experiences, only: %i[create update destroy]
+        resources :educations, only: %i[create update destroy]
+        resources :certifications, only: %i[create update destroy]
+        resources :skills, only: %i[create update destroy]
+        resources :projects, only: %i[create update destroy]
+      end
       resources :settings, only: [] do
         get :must_update, on: :collection
       end

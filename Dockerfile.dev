@@ -14,6 +14,7 @@ RUN apt-get update -qq && \
 # Copy node binaries from node image.
 COPY --from=node /usr/local /usr/local
 COPY --from=node /opt /opt
+RUN corepack enable
 
 # Setup environment variables.
 ENV WORK_ROOT=/src
@@ -42,7 +43,6 @@ RUN gem install foreman bundler
 # Copy dependencies files and install libraries.
 COPY --link --chown="$USERNAME:$USERNAME" --chmod=700 package.json yarn.lock .yarnrc.yml ./
 
-RUN corepack enable
 RUN yarn install --immutable && yarn cache clean
 
 COPY --link --chown="$USERNAME:$USERNAME" --chmod=700 Gemfile Gemfile.lock .ruby-version ./

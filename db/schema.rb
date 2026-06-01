@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_04_01_200354) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -59,6 +59,51 @@ ActiveRecord::Schema[8.1].define(version: 2025_04_01_200354) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
+  end
+
+  create_table "certifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "expiry_date"
+    t.date "issue_date"
+    t.string "issuer"
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "resume_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "url"
+    t.index ["resume_id"], name: "index_certifications_on_resume_id"
+  end
+
+  create_table "educations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "degree"
+    t.integer "end_year"
+    t.string "field_of_study"
+    t.string "gpa"
+    t.string "honors"
+    t.string "institution", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "resume_id", null: false
+    t.integer "start_year"
+    t.datetime "updated_at", null: false
+    t.index ["resume_id"], name: "index_educations_on_resume_id"
+  end
+
+  create_table "experiences", force: :cascade do |t|
+    t.jsonb "achievements", default: [], null: false
+    t.string "company", null: false
+    t.datetime "created_at", null: false
+    t.boolean "current", default: false, null: false
+    t.date "end_date"
+    t.string "job_title", null: false
+    t.string "location"
+    t.integer "position", default: 0, null: false
+    t.jsonb "responsibilities", default: [], null: false
+    t.bigint "resume_id", null: false
+    t.date "start_date"
+    t.jsonb "technologies", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.index ["resume_id"], name: "index_experiences_on_resume_id"
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -167,12 +212,86 @@ ActiveRecord::Schema[8.1].define(version: 2025_04_01_200354) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "projects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "date"
+    t.text "description"
+    t.integer "position", default: 0, null: false
+    t.bigint "resume_id", null: false
+    t.string "role"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.string "url"
+    t.index ["resume_id"], name: "index_projects_on_resume_id"
+  end
+
+  create_table "resume_profiles", force: :cascade do |t|
+    t.jsonb "awards", default: [], null: false
+    t.text "career_summary"
+    t.datetime "created_at", null: false
+    t.string "full_name"
+    t.string "github_url"
+    t.string "industry"
+    t.jsonb "interests", default: [], null: false
+    t.jsonb "job_preferences", default: {}, null: false
+    t.string "job_title"
+    t.jsonb "languages", default: [], null: false
+    t.string "linkedin_url"
+    t.string "location_city"
+    t.string "location_country"
+    t.string "phone"
+    t.string "portfolio_url"
+    t.jsonb "references", default: [], null: false
+    t.bigint "resume_id", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "volunteer_experiences", default: [], null: false
+    t.integer "years_of_experience"
+    t.index ["resume_id"], name: "index_resume_profiles_on_resume_id", unique: true
+  end
+
+  create_table "resumes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "current_step", default: 1, null: false
+    t.jsonb "layout_config", default: {}, null: false
+    t.bigint "source_resume_id"
+    t.string "status", default: "draft", null: false
+    t.bigint "template_id", null: false
+    t.string "title", default: "Untitled Resume", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "version", default: 1, null: false
+    t.index ["source_resume_id"], name: "index_resumes_on_source_resume_id"
+    t.index ["template_id"], name: "index_resumes_on_template_id"
+    t.index ["user_id", "status"], name: "index_resumes_on_user_id_and_status"
+    t.index ["user_id"], name: "index_resumes_on_user_id"
+  end
+
   create_table "settings", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "key", null: false
     t.datetime "updated_at", null: false
     t.string "value"
     t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
+  create_table "skills", force: :cascade do |t|
+    t.string "category", default: "technical", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "resume_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["resume_id", "category"], name: "index_skills_on_resume_id_and_category"
+    t.index ["resume_id"], name: "index_skills_on_resume_id"
+  end
+
+  create_table "templates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_templates_on_slug", unique: true
   end
 
   create_table "users", id: :serial, force: :cascade do |t|
@@ -200,4 +319,13 @@ ActiveRecord::Schema[8.1].define(version: 2025_04_01_200354) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "certifications", "resumes"
+  add_foreign_key "educations", "resumes"
+  add_foreign_key "experiences", "resumes"
+  add_foreign_key "projects", "resumes"
+  add_foreign_key "resume_profiles", "resumes"
+  add_foreign_key "resumes", "resumes", column: "source_resume_id"
+  add_foreign_key "resumes", "templates"
+  add_foreign_key "resumes", "users"
+  add_foreign_key "skills", "resumes"
 end
