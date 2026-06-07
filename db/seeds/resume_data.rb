@@ -17,8 +17,17 @@ module Seeds
 
     module_function
 
+    def ensure_templates!
+      Template.find_or_create_by!(slug: 'professional') do |template|
+        template.name = 'Professional'
+        template.description = 'Two-column executive layout with accent headings and structured entries'
+      end
+    end
+
     def seed!
       return unless Rails.env.development?
+
+      ensure_templates!
 
       puts 'Seeding sample users and resumes...'
 
@@ -41,7 +50,7 @@ module Seeds
     def create_base_resume(user, user_data, index)
       return if user.resumes.originals.exists?
 
-      template = Template.find_by!(slug: %w[classic modern minimal][index % 3])
+      template = Template.find_by!(slug: %w[classic modern minimal professional][index % 4])
       full_name = "#{user_data[:first_name]} #{user_data[:last_name]}"
 
       resume = user.resumes.create!(

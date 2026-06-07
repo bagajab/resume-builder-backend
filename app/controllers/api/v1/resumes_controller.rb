@@ -86,7 +86,7 @@ module API
       end
 
       def draft_params
-        params.require(:resume).permit(
+        permitted = params.require(:resume).permit(
           :title, :current_step, :status, :template_id,
           layout_config: [
             :accent_color,
@@ -96,7 +96,11 @@ module API
             :background_color,
             :border_color,
             :columns,
+            :divider_color,
+            :bullet_icon,
             { section_order: [], hidden_sections: [],
+              custom_sections: [:id, :title, :column, :layout, :heading_color, :bullet_icon,
+                                 { items: [:text, :icon] }],
               grid: [:columns, :row_height, { items: %i[section_id col row col_span row_span] }] }
           ],
           profile: [
@@ -123,6 +127,21 @@ module API
           skills: [:id, :name, :category, :_destroy],
           projects: [:id, :title, :description, :url, :date, :role, :_destroy]
         ).to_h.deep_symbolize_keys
+
+        merge_section_styles!(permitted)
+        permitted
+      end
+
+      # section_styles is a hash keyed by dynamic section ids, so strong params
+      # cannot enumerate the keys. It is purely cosmetic data stored as jsonb, so
+      # we read it from the raw params and symbolize it manually.
+      def merge_section_styles!(permitted)
+        raw = params.dig(:resume, :layout_config, :section_styles)
+        return if raw.blank?
+
+        styles = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+        permitted[:layout_config] ||= {}
+        permitted[:layout_config][:section_styles] = styles.deep_symbolize_keys
       end
     end
   end
