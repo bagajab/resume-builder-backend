@@ -107,7 +107,7 @@ module API
             :full_name, :phone, :location_city, :location_country,
             :linkedin_url, :github_url, :portfolio_url,
             :job_title, :years_of_experience, :industry, :career_summary,
-            { languages: %i[name proficiency],
+            { languages: %i[name proficiency level color],
               awards: %i[title organization date],
               volunteer_experiences: %i[role organization description date],
               references: %i[name title contact email phone],
@@ -124,7 +124,7 @@ module API
           certifications: [
             :id, :name, :issuer, :issue_date, :expiry_date, :url, :_destroy
           ],
-          skills: [:id, :name, :category, :_destroy],
+          skills: [:id, :name, :category, :level, :color, :_destroy],
           projects: [:id, :title, :description, :url, :date, :role, :_destroy]
         ).to_h.deep_symbolize_keys
 

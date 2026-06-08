@@ -35,7 +35,7 @@ module API
       end
 
       def skill_params
-        params.expect(skill: %i[name category position])
+        params.expect(skill: %i[name category position level color])
       end
     end
   end

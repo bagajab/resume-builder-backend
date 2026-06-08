@@ -32,7 +32,7 @@ module API
             :full_name, :phone, :location_city, :location_country,
             :linkedin_url, :github_url, :portfolio_url,
             :job_title, :years_of_experience, :industry, :career_summary,
-            { languages: %i[name proficiency],
+            { languages: %i[name proficiency level color],
               awards: %i[title organization date],
               volunteer_experiences: %i[role organization description date],
               references: %i[name title contact email phone],

@@ -1,5 +1,34 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: resumes
+#
+#  id               :bigint           not null, primary key
+#  current_step     :integer          default(1), not null
+#  layout_config    :jsonb            not null
+#  status           :string           default("draft"), not null
+#  title            :string           default("Untitled Resume"), not null
+#  version          :integer          default(1), not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  source_resume_id :bigint
+#  template_id      :bigint           not null
+#  user_id          :bigint           not null
+#
+# Indexes
+#
+#  index_resumes_on_source_resume_id    (source_resume_id)
+#  index_resumes_on_template_id         (template_id)
+#  index_resumes_on_user_id             (user_id)
+#  index_resumes_on_user_id_and_status  (user_id,status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (source_resume_id => resumes.id)
+#  fk_rails_...  (template_id => templates.id)
+#  fk_rails_...  (user_id => users.id)
+#
 class Resume < ApplicationRecord
   STATUSES = %w[draft completed].freeze
   STEPS = 6
