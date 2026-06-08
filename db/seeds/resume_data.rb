@@ -22,6 +22,11 @@ module Seeds
         template.name = 'Professional'
         template.description = 'Two-column executive layout with accent headings and structured entries'
       end
+
+      Template.find_or_create_by!(slug: 'spotlight') do |template|
+        template.name = 'Spotlight'
+        template.description = 'Two-column layout with a bold indigo sidebar, skill meters, language rings and section badges'
+      end
     end
 
     def seed!
