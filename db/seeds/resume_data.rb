@@ -15,6 +15,14 @@ module Seeds
       { first_name: 'Jack', last_name: 'Thomas', email: 'jack@example.com', job_title: 'Technical Writer', industry: 'Documentation' }
     ].freeze
 
+    BILILIGN_USER = {
+      first_name: 'Bililign',
+      last_name: 'Niguse Feredegn',
+      email: 'bililignniguse1@gmail.com',
+      job_title: 'Public Health Professional',
+      industry: 'Public Health'
+    }.freeze
+
     module_function
 
     def ensure_templates!
@@ -26,6 +34,11 @@ module Seeds
       Template.find_or_create_by!(slug: 'spotlight') do |template|
         template.name = 'Spotlight'
         template.description = 'Two-column layout with a bold indigo sidebar, skill meters, language rings and section badges'
+      end
+
+      Template.find_or_create_by!(slug: 'double') do |template|
+        template.name = 'Double Column'
+        template.description = 'Clean two-column layout with a contact header, photo, icon-badged achievements and interests, courses, skills and dotted language meters'
       end
     end
 
@@ -49,7 +62,144 @@ module Seeds
         create_base_resume(user, user_data, index)
       end
 
-      puts "Seeded #{SAMPLE_USERS.size} users with resumes."
+      puts "Seeded #{SAMPLE_USERS.size} sample users with resumes."
+
+      user = User.find_or_initialize_by(email: BILILIGN_USER[:email])
+      user.assign_attributes(
+        first_name: BILILIGN_USER[:first_name],
+        last_name: BILILIGN_USER[:last_name],
+        password: 'password',
+        password_confirmation: 'password'
+      )
+      user.save!
+
+      create_bililign_resume(user)
+
+      puts 'Seeded Bililign Niguse Feredegn with resume.'
+    end
+
+    def create_bililign_resume(user)
+      return if user.resumes.originals.exists?
+
+      template = Template.find_by!(slug: 'professional')
+      full_name = 'Bililign Niguse Feredegn'
+
+      resume = user.resumes.create!(
+        title: "#{full_name} — #{BILILIGN_USER[:job_title]}",
+        status: 'completed',
+        current_step: 6,
+        template: template,
+        version: 1
+      )
+
+      resume.create_profile!(
+        full_name: full_name,
+        phone: nil,
+        location_city: nil,
+        location_country: 'Ethiopia',
+        job_title: BILILIGN_USER[:job_title],
+        years_of_experience: 1,
+        industry: BILILIGN_USER[:industry],
+        career_summary: 'Recent Bachelor of Science graduate in Public Health with hands-on community health ' \
+                        'experience, strong academic performance, and demonstrated leadership as a class representative. ' \
+                        'Passionate about health education, environmental sanitation, and collaborative service delivery.',
+        languages: [
+          { name: 'English', proficiency: 'Fluent' },
+          { name: 'Amharic', proficiency: 'Fluent' },
+          { name: 'Afaan Oromo', proficiency: 'Fluent' }
+        ],
+        awards: [
+          {
+            title: 'Certificate of Appreciation',
+            organization: 'Geneme Health Center',
+            date: 'Jan 2026'
+          }
+        ],
+        volunteer_experiences: [
+          {
+            role: 'Member',
+            organization: 'Ethiopian Health Profession Students Association (EHPSA), Wolaita Sodo Branch',
+            description: 'Participated in student-led professional development and public health activities. ' \
+                         'Engaged in initiatives promoting health awareness and community service.',
+            date: '2025–2026'
+          }
+        ],
+        references: [],
+        interests: %w[Community Health Public Health Advocacy Professional Development],
+        job_preferences: { remote: false, hybrid: true, onsite: true }
+      )
+
+      resume.experiences.create!(
+        job_title: 'Class Representative',
+        company: 'Wolaita Sodo University',
+        location: 'Ethiopia',
+        start_date: nil,
+        end_date: nil,
+        current: true,
+        responsibilities: [
+          'Represented students and communicated academic concerns between students and faculty.',
+          'Coordinated class activities and promoted collaboration among students.',
+          'Demonstrated leadership, responsibility, and problem-solving skills.'
+        ],
+        achievements: [],
+        technologies: [],
+        position: 0
+      )
+
+      resume.experiences.create!(
+        job_title: 'Public Health Trainee',
+        company: 'Geneme Health Center',
+        location: 'Ethiopia',
+        start_date: Date.new(2025, 12, 1),
+        end_date: Date.new(2026, 1, 31),
+        current: false,
+        responsibilities: [
+          'Conducted health education and community awareness activities.',
+          'Participated in environmental sanitation initiatives and routine health data collection.',
+          'Collaborated with healthcare professionals to support service delivery and community health programs.'
+        ],
+        achievements: [
+          'Received a Certificate of Appreciation for dedication and performance.'
+        ],
+        technologies: [],
+        position: 1
+      )
+
+      resume.educations.create!(
+        institution: 'Wolaita Sodo University',
+        degree: 'Bachelor of Science (BSc)',
+        field_of_study: 'Public Health',
+        start_year: nil,
+        end_year: 2026,
+        gpa: '3.54/4.00',
+        honors: 'Passed the Ethiopian National University Exit Examination. ' \
+                'Grade 8 Regional Examination Score: 91.88%. ' \
+                'Maintained strong academic performance throughout secondary school and university.',
+        position: 0
+      )
+
+      [
+        { name: 'Leadership and Team Coordination', category: 'soft' },
+        { name: 'Public Health Research and Data Collection', category: 'technical' },
+        { name: 'Community Health Promotion', category: 'technical' },
+        { name: 'Problem Solving and Analytical Thinking', category: 'soft' },
+        { name: 'Microsoft Word', category: 'tools' },
+        { name: 'Microsoft Excel', category: 'tools' },
+        { name: 'Microsoft PowerPoint', category: 'tools' }
+      ].each_with_index do |skill, i|
+        resume.skills.create!(name: skill[:name], category: skill[:category], position: i)
+      end
+
+      resume.certifications.create!(
+        name: 'Certificate of Appreciation',
+        issuer: 'Geneme Health Center',
+        issue_date: Date.new(2026, 1, 31),
+        expiry_date: nil,
+        url: nil,
+        position: 0
+      )
+
+      create_derived_versions(user, resume)
     end
 
     def create_base_resume(user, user_data, index)
@@ -212,7 +362,7 @@ module Seeds
       end
     end
 
-    def create_derived_versions(user, base_resume, index)
+    def create_derived_versions(user, base_resume, index = nil)
       derived_templates = Template.where.not(id: base_resume.template_id).ordered.limit(2)
 
       derived_templates.each_with_index do |template, i|
@@ -222,6 +372,8 @@ module Seeds
           template: template,
           status: 'draft'
         )
+
+        next if index.nil?
 
         # Simulate edits on derived resume without touching the original
         derived.profile.update!(career_summary: "#{derived.profile.career_summary} Tailored for #{template.name} presentation.")

@@ -29,4 +29,15 @@ class Education < ApplicationRecord
   belongs_to :resume
 
   validates :institution, presence: true
+  validates :institution, :degree, :field_of_study, length: { maximum: 160 }, allow_blank: true
+  validates :start_year, :end_year, numericality: { in: 1900..2100 }, allow_nil: true
+  validate :end_year_after_start_year
+
+  private
+
+  def end_year_after_start_year
+    return if start_year.blank? || end_year.blank? || end_year >= start_year
+
+    errors.add(:end_year, "must be after the start year")
+  end
 end

@@ -35,7 +35,17 @@
 #  fk_rails_...  (resume_id => resumes.id)
 #
 class ResumeProfile < ApplicationRecord
+  URL_FORMAT = %r{\Ahttps?://}.freeze
+
   belongs_to :resume
 
   validates :resume_id, uniqueness: true
+  validates :full_name, :job_title, :industry, length: { maximum: 120 }, allow_blank: true
+  validates :phone, length: { maximum: 40 }, allow_blank: true
+  validates :location_city, :location_country, length: { maximum: 80 }, allow_blank: true
+  validates :career_summary, length: { maximum: 1_200 }, allow_blank: true
+  validates :years_of_experience, numericality: { in: 0..60 }, allow_nil: true
+  validates :linkedin_url, :github_url, :portfolio_url,
+            format: { with: URL_FORMAT, message: "must start with http:// or https://" },
+            allow_blank: true
 end

@@ -24,7 +24,22 @@
 #  fk_rails_...  (resume_id => resumes.id)
 #
 class Certification < ApplicationRecord
+  URL_FORMAT = %r{\Ahttps?://}.freeze
+
   belongs_to :resume
 
   validates :name, presence: true
+  validates :name, :issuer, length: { maximum: 160 }, allow_blank: true
+  validates :url,
+            format: { with: URL_FORMAT, message: "must start with http:// or https://" },
+            allow_blank: true
+  validate :expiry_date_after_issue_date
+
+  private
+
+  def expiry_date_after_issue_date
+    return if issue_date.blank? || expiry_date.blank? || expiry_date >= issue_date
+
+    errors.add(:expiry_date, "must be after the issue date")
+  end
 end

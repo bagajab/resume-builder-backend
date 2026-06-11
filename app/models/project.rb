@@ -24,7 +24,14 @@
 #  fk_rails_...  (resume_id => resumes.id)
 #
 class Project < ApplicationRecord
+  URL_FORMAT = %r{\Ahttps?://}.freeze
+
   belongs_to :resume
 
   validates :title, presence: true
+  validates :title, :role, length: { maximum: 160 }, allow_blank: true
+  validates :description, length: { maximum: 1_500 }, allow_blank: true
+  validates :url,
+            format: { with: URL_FORMAT, message: "must start with http:// or https://" },
+            allow_blank: true
 end

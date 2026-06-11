@@ -29,6 +29,7 @@ class Skill < ApplicationRecord
   belongs_to :resume
 
   validates :name, presence: true
+  validates :name, :color, length: { maximum: 80 }, allow_blank: true
   validates :category, inclusion: { in: CATEGORIES }
   validates :level, numericality: { in: 0..100 }, allow_nil: true
 end
