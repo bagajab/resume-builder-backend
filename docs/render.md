@@ -27,8 +27,10 @@ This backend is configured for [Render](https://render.com) using Docker. The re
 | `AWS_ACCESS_KEY_ID` | AWS IAM access key | Yes (for uploads) |
 | `AWS_SECRET_ACCESS_KEY` | AWS IAM secret | Yes (for uploads) |
 | `S3_BUCKET_NAME` | `your-bucket-name` | Yes (for uploads) |
-| `AWS_BUCKET_REGION` | `us-east-1` | Yes (for uploads) |
+| `AWS_BUCKET_REGION` | `us-east-1` | Yes (for profile photo uploads) |
 | `SENDGRID_API_KEY` | SendGrid API key | Optional |
+
+> **Note:** If S3 variables are missing, the API will still start using local disk storage. Profile photos will not persist across deploys until S3 is configured.
 
 5. Click **Apply**. Render builds the Docker image, creates the database, and starts the web and worker services.
 
@@ -135,6 +137,7 @@ If this backend lives in a subdirectory of a larger repository, set **Root Direc
 | Issue | Fix |
 | --- | --- |
 | Health check fails | Confirm `/api/v1/status` returns 200 and `DATABASE_URL` is the **internal** Postgres URL |
+| `No region was provided` / worker crash on boot | Set `AWS_BUCKET_REGION` (e.g. `us-east-1`) plus the other three S3 env vars on the web **and** worker services |
 | Profile photo upload fails | Verify all four AWS/S3 env vars and bucket CORS policy |
 | Password reset email missing | Set `SENDGRID_API_KEY`; otherwise mailers are configured but not sent |
 | Background jobs stuck | Ensure `resume-builder-worker` is running and shares `DATABASE_URL` + `SECRET_KEY_BASE` with the web service |

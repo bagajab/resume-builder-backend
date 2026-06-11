@@ -37,6 +37,9 @@ envVarGroups:
         sync: false
       - key: AWS_BUCKET_REGION
         sync: false
+      # Optional alias for AWS SDK; set to the same value as AWS_BUCKET_REGION if used.
+      - key: AWS_REGION
+        sync: false
       - key: SENDGRID_API_KEY
         sync: false
 
