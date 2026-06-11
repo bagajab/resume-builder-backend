@@ -26,7 +26,9 @@ Rails.application.routes.draw do
           post :duplicate
         end
 
-        resource :profile, only: %i[create update], controller: 'resume_profiles'
+        resource :profile, only: %i[create update], controller: 'resume_profiles' do
+          resource :photo, only: %i[create destroy], controller: 'profile_photos'
+        end
         resources :experiences, only: %i[create update destroy]
         resources :educations, only: %i[create update destroy]
         resources :certifications, only: %i[create update destroy]

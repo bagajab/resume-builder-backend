@@ -62,7 +62,7 @@ module API
       def set_resume
         @resume = policy_scope(Resume).includes(
           :template,
-          :profile,
+          { profile: { photo_attachment: :blob } },
           :experiences,
           :educations,
           :certifications,

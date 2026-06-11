@@ -36,10 +36,14 @@
 #
 class ResumeProfile < ApplicationRecord
   URL_FORMAT = %r{\Ahttps?://}.freeze
+  ALLOWED_PHOTO_TYPES = %w[image/jpeg image/png image/webp image/gif].freeze
+  MAX_PHOTO_SIZE = 5.megabytes
 
   belongs_to :resume
+  has_one_attached :photo
 
   validates :resume_id, uniqueness: true
+  validate :acceptable_photo
   validates :full_name, :job_title, :industry, length: { maximum: 120 }, allow_blank: true
   validates :phone, length: { maximum: 40 }, allow_blank: true
   validates :location_city, :location_country, length: { maximum: 80 }, allow_blank: true
@@ -48,4 +52,32 @@ class ResumeProfile < ApplicationRecord
   validates :linkedin_url, :github_url, :portfolio_url,
             format: { with: URL_FORMAT, message: "must start with http:// or https://" },
             allow_blank: true
+
+  def photo_url
+    return unless photo.attached?
+
+    Rails.application.routes.url_helpers.rails_blob_url(photo, **blob_url_options)
+  end
+
+  private
+
+  def blob_url_options
+    host = ENV.fetch('SERVER_HOST', 'localhost')
+    port = ENV.fetch('PORT', 3000).to_i
+    opts = { host:, protocol: Rails.env.production? ? 'https' : 'http' }
+    opts[:port] = port unless port == 80
+    opts
+  end
+
+  def acceptable_photo
+    return unless photo.attached?
+
+    unless photo.content_type.in?(ALLOWED_PHOTO_TYPES)
+      errors.add(:photo, 'must be a JPEG, PNG, WebP, or GIF image')
+    end
+
+    return unless photo.byte_size > MAX_PHOTO_SIZE
+
+    errors.add(:photo, 'must be smaller than 5 MB')
+  end
 end

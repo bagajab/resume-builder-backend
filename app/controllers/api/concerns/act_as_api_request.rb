@@ -11,7 +11,10 @@ module API
       end
 
       def check_json_request
-        return if !request_with_body? || request.content_type&.include?('json')
+        return unless request_with_body?
+
+        content_type = request.content_type.to_s
+        return if content_type.include?('json') || content_type.start_with?('multipart/form-data')
 
         render json: { error: I18n.t('api.errors.invalid_content_type') }, status: :not_acceptable
       end

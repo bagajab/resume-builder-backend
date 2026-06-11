@@ -6,7 +6,8 @@ module ActiveStorage
   class Service
     class DiskWithHostService < ActiveStorage::Service::DiskService
       def url_options
-        Rails.application.default_url_options
+        ActiveStorage::Current.url_options.presence ||
+          Rails.application.config.active_storage.default_url_options
       end
     end
   end

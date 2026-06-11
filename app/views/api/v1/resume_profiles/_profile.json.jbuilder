@@ -12,6 +12,7 @@ json.job_title  profile.job_title
 json.years_of_experience profile.years_of_experience
 json.industry   profile.industry
 json.career_summary profile.career_summary
+json.photo_url profile.photo_url
 json.languages  profile.languages
 json.awards     profile.awards
 json.volunteer_experiences profile.volunteer_experiences
