@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  root to: 'root#show'
+
   scope format: :json do
     mount_devise_token_auth_for 'User', at: '/api/v1/users', controllers: {
       registrations: 'api/v1/registrations',
