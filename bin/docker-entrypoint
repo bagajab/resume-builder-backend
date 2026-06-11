@@ -1,5 +1,25 @@
 #!/bin/bash -e
 
+APP_USER="${USERNAME:-rails_api_base}"
+
+ensure_active_storage_dirs() {
+  mkdir -p storage tmp/storage
+  if [ "$(id -u)" = "0" ]; then
+    chown -R "${USER_UID:-1000}:${USER_GID:-1000}" storage tmp/storage
+  fi
+}
+
+# Fix Active Storage permissions when the container starts as root, then continue
+# as the unprivileged app user for the actual command.
+if [ "$1" != "--as-app-user" ]; then
+  ensure_active_storage_dirs
+  if [ "$(id -u)" = "0" ]; then
+    exec runuser -u "${APP_USER}" -- "$0" --as-app-user "$@"
+  fi
+else
+  shift
+fi
+
 cleanup_stale_server_pid() {
   local pidfile="tmp/pids/server.pid"
 

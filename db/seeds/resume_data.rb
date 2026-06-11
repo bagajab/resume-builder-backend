@@ -23,22 +23,31 @@ module Seeds
       industry: 'Public Health'
     }.freeze
 
+    BAGAJA_USER = {
+      first_name: 'Bagaja',
+      last_name: 'Birhanu Nura',
+      email: 'bagajab@gmail.com',
+      job_title: 'Senior Digital Solutions Engineer',
+      industry: 'Digital Health & Technology'
+    }.freeze
+
     module_function
 
+    TEMPLATES = [
+      { slug: 'classic', name: 'Classic', description: 'Traditional single-column layout with centered header' },
+      { slug: 'modern', name: 'Modern', description: 'Contemporary design with accent color bar' },
+      { slug: 'minimal', name: 'Minimal', description: 'Clean, whitespace-focused layout with subtle typography' },
+      { slug: 'professional', name: 'Professional', description: 'Two-column executive layout with accent headings and structured entries' },
+      { slug: 'spotlight', name: 'Spotlight', description: 'Two-column layout with a bold indigo sidebar, skill meters, language rings and section badges' },
+      { slug: 'double', name: 'Double Column', description: 'Clean two-column layout with a contact header, photo, icon-badged achievements and interests, courses, skills and dotted language meters' }
+    ].freeze
+
     def ensure_templates!
-      Template.find_or_create_by!(slug: 'professional') do |template|
-        template.name = 'Professional'
-        template.description = 'Two-column executive layout with accent headings and structured entries'
-      end
-
-      Template.find_or_create_by!(slug: 'spotlight') do |template|
-        template.name = 'Spotlight'
-        template.description = 'Two-column layout with a bold indigo sidebar, skill meters, language rings and section badges'
-      end
-
-      Template.find_or_create_by!(slug: 'double') do |template|
-        template.name = 'Double Column'
-        template.description = 'Clean two-column layout with a contact header, photo, icon-badged achievements and interests, courses, skills and dotted language meters'
+      TEMPLATES.each do |attrs|
+        Template.find_or_create_by!(slug: attrs[:slug]) do |template|
+          template.name = attrs[:name]
+          template.description = attrs[:description]
+        end
       end
     end
 
@@ -76,6 +85,19 @@ module Seeds
       create_bililign_resume(user)
 
       puts 'Seeded Bililign Niguse Feredegn with resume.'
+
+      user = User.find_or_initialize_by(email: BAGAJA_USER[:email])
+      user.assign_attributes(
+        first_name: BAGAJA_USER[:first_name],
+        last_name: BAGAJA_USER[:last_name],
+        password: 'password',
+        password_confirmation: 'password'
+      )
+      user.save!
+
+      create_bagaja_resume(user)
+
+      puts 'Seeded Bagaja Birhanu Nura with resume.'
     end
 
     def create_bililign_resume(user)
@@ -198,6 +220,243 @@ module Seeds
         url: nil,
         position: 0
       )
+
+      create_derived_versions(user, resume)
+    end
+
+    def create_bagaja_resume(user)
+      return if user.resumes.originals.exists?
+
+      template = Template.find_by!(slug: 'professional')
+      full_name = 'Bagaja Birhanu Nura'
+
+      resume = user.resumes.create!(
+        title: "#{full_name} — #{BAGAJA_USER[:job_title]}",
+        status: 'completed',
+        current_step: 6,
+        template: template,
+        version: 1
+      )
+
+      resume.create_profile!(
+        full_name: full_name,
+        phone: '+251-916-382434',
+        location_city: 'Addis Ababa',
+        location_country: 'Ethiopia',
+        github_url: 'https://github.com/bagajab',
+        portfolio_url: 'https://www.bagaja.dev',
+        job_title: BAGAJA_USER[:job_title],
+        years_of_experience: 9,
+        industry: BAGAJA_USER[:industry],
+        career_summary: 'Digital Development and Technology Specialist with 9+ years of experience designing ' \
+                        'and scaling digital services for millions of users across Ethiopia. Experienced in ' \
+                        'SMS-based communication systems, user-centered product design, interoperability, ' \
+                        'stakeholder engagement, and nationwide digital transformation initiatives. Skilled at ' \
+                        'translating complex technical and program requirements into practical digital solutions ' \
+                        'for underserved populations. Passionate about applying technology, data, and behavioral ' \
+                        'insights to improve outcomes for smallholder farmers and rural communities.',
+        languages: [
+          { name: 'English', proficiency: 'Fluent' },
+          { name: 'Amharic', proficiency: 'Native' }
+        ],
+        awards: [],
+        volunteer_experiences: [],
+        references: [],
+        interests: %w[
+          Digital Health
+          Interoperability
+          Open Source
+          Rural Development
+          User-Centered Design
+        ],
+        job_preferences: { remote: true, hybrid: true, onsite: true }
+      )
+
+      resume.experiences.create!(
+        job_title: 'Digital Advisor | Software Engineer',
+        company: 'UNICEF EHIS',
+        location: 'Addis Ababa, Ethiopia',
+        start_date: Date.new(2025, 9, 1),
+        end_date: nil,
+        current: true,
+        responsibilities: [
+          'Designed and maintained SMS-based communication workflows and automated alerts reaching beneficiaries through basic mobile phones and low-bandwidth networks.',
+          'Conducted user needs assessments and stakeholder consultations to identify service gaps and improve digital product adoption.',
+          'Worked directly with field teams and operational staff to gather feedback, validate requirements, and refine workflows.',
+          'Developed user-centered digital services tailored for resource-constrained environments.',
+          'Evaluated platform interoperability, API maturity, and integration readiness to support scalable digital ecosystems.',
+          'Supported training and capacity building for end users and operational teams.',
+          'Collaborated with regional implementation teams and operational users to gather field feedback and improve service delivery workflows.',
+          'Participated in requirements validation sessions with local stakeholders to ensure solutions aligned with user needs and operational realities.'
+        ],
+        achievements: [],
+        technologies: %w[SMS APIs User-Centered Design],
+        position: 0
+      )
+
+      resume.experiences.create!(
+        job_title: 'Consultant — openIMIS Sandbox Setup',
+        company: 'management4health (m4Health)',
+        location: 'Addis Ababa, Ethiopia',
+        start_date: Date.new(2025, 3, 1),
+        end_date: nil,
+        current: true,
+        responsibilities: [
+          'Evaluated platform architecture and API maturity to build scalable interoperability sandboxes, ensuring secure, standardized data exchange across complex institutional ecosystems.',
+          'Led the end-to-end setup of an openIMIS interoperability sandbox for GIZ, architecting a deployment strategy rooted in OpenHIE and DCI frameworks.',
+          'Engineered the seamless integration of openHIM with openIMIS, utilizing mediator patterns to facilitate secure, standardized data exchange across the national health ecosystem.',
+          'Pioneered the integration of MOSIP with openIMIS to enable robust, biometrically-backed insuree verification, enhancing the security of enrollment and claims workflows.'
+        ],
+        achievements: [],
+        technologies: %w[openIMIS openHIM OpenHIE MOSIP DCI],
+        position: 1
+      )
+
+      resume.experiences.create!(
+        job_title: 'Senior Full Stack Engineer',
+        company: 'management4health (m4Health)',
+        location: 'Addis Ababa, Ethiopia',
+        start_date: Date.new(2024, 1, 1),
+        end_date: Date.new(2024, 11, 30),
+        current: false,
+        responsibilities: [
+          'Successfully transitioned the National Health Insurance System from pilot to full-scale implementation, benefiting millions of Ethiopians.',
+          'Led the development and enhancement of the National Health Insurance System, initially piloted by CHAI, ensuring scalability and reliability for nationwide use.',
+          'Enhanced system security and performance, ensuring high availability and reliability of health services.',
+          'Improved application performance and scalability by containerizing the entire system and using horizontal deployment methods.',
+          'Implemented advanced security measures and conducted regular updates and patches to maintain system integrity.',
+          'Provided training and support to healthcare workers and system users.'
+        ],
+        achievements: [
+          'Scaled the National Health Insurance System from pilot to nationwide deployment serving millions of beneficiaries.'
+        ],
+        technologies: %w[Docker Kubernetes Ruby on Rails PostgreSQL],
+        position: 2
+      )
+
+      resume.experiences.create!(
+        job_title: 'Senior Software Engineer',
+        company: 'TruLiv',
+        location: 'Los Angeles, California, USA (Remote)',
+        start_date: Date.new(2022, 2, 1),
+        end_date: Date.new(2023, 12, 31),
+        current: false,
+        responsibilities: [
+          'Contributed to the design and development of a cloud-based real estate SaaS platform deployed on AWS, supporting end-to-end investment workflows.',
+          'Built and maintained backend services and APIs powering deal sourcing, pipeline management, notifications, and reporting systems.',
+          'Worked with data pipeline services to process, aggregate, and analyze real estate data used for pricing, rent comps, and investment insights.',
+          'Implemented automated email and in-app notification systems triggered by data and workflow changes across the platform.',
+          'Collaborated on cloud deployment, configuration, and operational support to ensure reliability, scalability, and secure production releases.'
+        ],
+        achievements: [],
+        technologies: %w[AWS SaaS APIs Data Pipelines],
+        position: 3
+      )
+
+      resume.experiences.create!(
+        job_title: 'Software Engineer',
+        company: 'ICAP',
+        location: 'Addis Ababa, Ethiopia',
+        start_date: Date.new(2022, 1, 1),
+        end_date: Date.new(2022, 2, 28),
+        current: false,
+        responsibilities: [
+          'Developed and refined integration between applications.',
+          'Researched and evaluated a variety of eHealth application software products.',
+          'Customized Bahmni open source EMR in the Ethiopian context.',
+          'Customized and integrated the Ethiopian calendar into the existing application.',
+          'Developed a system for data migration from the legacy system and supported the migration process.'
+        ],
+        achievements: [],
+        technologies: %w[Bahmni EMR Open Source],
+        position: 4
+      )
+
+      resume.experiences.create!(
+        job_title: 'Full Stack Engineer',
+        company: 'Clinton Health Access Initiative (CHAI)',
+        location: 'Addis Ababa, Ethiopia',
+        start_date: Date.new(2020, 3, 1),
+        end_date: Date.new(2021, 12, 31),
+        current: false,
+        responsibilities: [
+          'Served as technical lead of the insurance management platform developed for EHIA in partnership with the Ethiopian Ministry of Health.',
+          'Designed, developed, and implemented new features in the National Health Insurance System platform.',
+          'Managed updates, bug fixes, and security patches on the platform.',
+          'Managed DevOps activities to ensure uptime and availability of the application.',
+          'Designed and implemented an automated rule engine to systematically flag anomalous insurance claims based on predefined medical and business rules, optimizing verification workflows and reducing manual review time.'
+        ],
+        achievements: [
+          'Led technical delivery of the National Health Insurance System pilot used by the entire population of Ethiopia.'
+        ],
+        technologies: %w[Ruby on Rails DevOps PostgreSQL],
+        position: 5
+      )
+
+      resume.experiences.create!(
+        job_title: 'Programmer',
+        company: 'Winner Systems',
+        location: 'Addis Ababa, Ethiopia',
+        start_date: Date.new(2017, 7, 1),
+        end_date: Date.new(2020, 2, 28),
+        current: false,
+        responsibilities: [
+          'Developed backend APIs and enterprise modules for large-scale ERP systems used by multiple public universities.',
+          'Built and maintained single-page applications using React and GraphQL backed by Ruby on Rails APIs.',
+          'Implemented identity and access workflows, including QR-code-based student identification systems.',
+          'Designed and delivered scheduling (class/exam) and reporting modules supporting thousands of concurrent users.',
+          'Worked closely with deployment and support teams to deliver reliable production releases across institutions.'
+        ],
+        achievements: [],
+        technologies: %w[Ruby on Rails React GraphQL ERP],
+        position: 6
+      )
+
+      resume.educations.create!(
+        institution: 'Woldia University',
+        degree: 'Bachelor of Science (BSc)',
+        field_of_study: 'Computer Science',
+        start_year: 2013,
+        end_year: 2017,
+        gpa: nil,
+        honors: 'Graduated with High Distinction from the department.',
+        position: 0
+      )
+
+      [
+        { name: 'Digital Platforms & Advisory Systems', category: 'technical' },
+        { name: 'SMS & Mobile Communication Systems', category: 'technical' },
+        { name: 'API Integration & Interoperability', category: 'technical' },
+        { name: 'Data Analysis & Reporting', category: 'technical' },
+        { name: 'User-Centered Design', category: 'soft' },
+        { name: 'Cloud & Web Technologies', category: 'technical' },
+        { name: 'Ruby on Rails', category: 'tools' },
+        { name: 'React', category: 'tools' },
+        { name: 'GraphQL', category: 'tools' },
+        { name: 'AWS', category: 'tools' },
+        { name: 'Docker', category: 'tools' },
+        { name: 'openIMIS', category: 'tools' },
+        { name: 'Stakeholder Engagement', category: 'soft' },
+        { name: 'Problem Solving', category: 'soft' }
+      ].each_with_index do |skill, i|
+        resume.skills.create!(name: skill[:name], category: skill[:category], position: i)
+      end
+
+      [
+        { name: 'LinkedIn Certified Data Analyst', issuer: 'LinkedIn', year: 2023 },
+        { name: 'LinkedIn Certified Project Manager', issuer: 'LinkedIn', year: 2023 },
+        { name: 'COVID-19 Contact Tracing', issuer: 'Johns Hopkins University', year: 2020 },
+        { name: 'NDG Linux Unhatched', issuer: 'Cisco Networking Academy', year: 2020 }
+      ].each_with_index do |cert, i|
+        resume.certifications.create!(
+          name: cert[:name],
+          issuer: cert[:issuer],
+          issue_date: Date.new(cert[:year], 6, 1),
+          expiry_date: nil,
+          url: nil,
+          position: i
+        )
+      end
 
       create_derived_versions(user, resume)
     end
