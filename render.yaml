@@ -1,0 +1,75 @@
+# Render Blueprint for the Resume Builder API.
+# Docs: https://render.com/docs/infrastructure-as-code
+#
+# Deploy from the Render Dashboard:
+#   New > Blueprint > connect this repo > Blueprint path: render.yaml
+#
+# Or sync automatically after pushing to the linked branch.
+
+databases:
+  - name: resume-builder-db
+    databaseName: resume_builder_production
+    user: resume_builder
+    plan: free
+
+envVarGroups:
+  - name: resume-builder-shared
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: RAILS_MAX_THREADS
+        value: "3"
+      - key: SERVER_HOST
+        sync: false
+      - key: PASSWORD_RESET_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: AWS_BUCKET_REGION
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+
+services:
+  - type: web
+    name: resume-builder-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/v1/status
+    # Paid plans only. Free tier relies on db:prepare in bin/docker-entrypoint at boot.
+    # preDeployCommand: bundle exec rails db:prepare && ./bin/release.sh
+    envVars:
+      - fromGroup: resume-builder-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: resume-builder-db
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        generateValue: true
+
+  - type: worker
+    name: resume-builder-worker
+    runtime: docker
+    plan: free
+    dockerCommand: bundle exec good_job start
+    envVars:
+      - fromGroup: resume-builder-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: resume-builder-db
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        fromService:
+          name: resume-builder-api
+          type: web
+          envVarKey: SECRET_KEY_BASE
