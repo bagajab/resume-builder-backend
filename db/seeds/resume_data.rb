@@ -52,7 +52,7 @@ module Seeds
     end
 
     def seed!
-      return unless Rails.env.development?
+      # return unless Rails.env.development?
 
       ensure_templates!
 
