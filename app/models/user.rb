@@ -49,10 +49,15 @@ class User < ApplicationRecord
                           created_at updated_at].freeze
 
   def self.from_social_provider(provider, user_params)
-    where(provider:, uid: user_params['id']).first_or_create! do |user|
-      user.password = Devise.friendly_token[0, 20]
-      user.assign_attributes user_params.except('id')
-    end
+    profile = Users::OauthService::Profile.new(
+      provider: provider.to_s,
+      uid: user_params['id'].to_s,
+      email: user_params['email'],
+      first_name: user_params['first_name'].to_s,
+      last_name: user_params['last_name'].to_s
+    )
+
+    Users::OauthService.find_or_create_user!(profile)
   end
 
   def full_name

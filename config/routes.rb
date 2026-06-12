@@ -17,6 +17,8 @@ Rails.application.routes.draw do
       resources :impersonations, only: %i[create], constraints: Impersonation::EnabledConstraint.new
       devise_scope :user do
         resource :user, only: %i[update show]
+        post 'users/oauth/google', to: 'oauth#google'
+        post 'users/oauth/facebook', to: 'oauth#facebook'
       end
 
       resources :templates, only: %i[index]

@@ -29,6 +29,10 @@ This backend is configured for [Render](https://render.com) using Docker. The re
 | `S3_BUCKET_NAME` | `your-bucket-name` | Yes (for uploads) |
 | `AWS_BUCKET_REGION` | `us-east-1` | Yes (for profile photo uploads) |
 | `SENDGRID_API_KEY` | SendGrid API key | Optional |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Optional (social login) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Optional (social login) |
+| `FACEBOOK_APP_ID` | Meta app ID | Optional (social login) |
+| `FACEBOOK_APP_SECRET` | Meta app secret | Optional (social login) |
 
 > **Note:** If S3 variables are missing, the API will still start using local disk storage. Profile photos will not persist across deploys until S3 is configured.
 
