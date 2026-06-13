@@ -3,7 +3,7 @@
 module API
   module V1
     class ResumesController < API::V1::APIController
-      before_action :set_resume, only: %i[show update destroy draft export_pdf duplicate]
+      before_action :set_resume, only: %i[show update destroy draft export_pdf duplicate public_profile]
 
       def index
         @resumes = policy_scope(Resume).ordered.includes(:profile, :template)
@@ -57,6 +57,25 @@ module API
         render :show, status: :created
       end
 
+      def public_profile
+        authorize @resume, :update?
+        @resume.update!(public_profile_params)
+        render :show
+      end
+
+      def check_public_slug
+        authorize Resume
+        slug = Resume.normalize_public_slug(params[:slug])
+        resume_id = params[:resume_id].presence&.to_i
+        available = Resume.slug_available?(slug, excluding_id: resume_id)
+
+        render json: {
+          slug:,
+          available:,
+          errors: slug_errors(slug, resume_id)
+        }
+      end
+
       private
 
       def set_resume
@@ -82,7 +101,22 @@ module API
       end
 
       def update_params
-        params.expect(resume: %i[title status current_step template_id layout_config])
+        params.expect(resume: %i[title status current_step template_id layout_config public_slug public_profile_enabled])
+      end
+
+      def public_profile_params
+        params.expect(resume: %i[public_slug public_profile_enabled])
+      end
+
+      def slug_errors(slug, resume_id)
+        errors = []
+        errors << 'Slug is required' if slug.blank?
+        errors << 'Slug is reserved' if slug.present? && Resume::RESERVED_SLUGS.include?(slug)
+        if slug.present? && !Resume::SLUG_FORMAT.match?(slug)
+          errors << 'Slug must contain only lowercase letters, numbers, and hyphens'
+        end
+        errors << 'Slug is already taken' if slug.present? && !Resume.slug_available?(slug, excluding_id: resume_id)
+        errors
       end
 
       def draft_params

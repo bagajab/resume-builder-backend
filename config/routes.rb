@@ -23,9 +23,16 @@ Rails.application.routes.draw do
 
       resources :templates, only: %i[index]
 
+      get 'public/profiles/:slug', to: 'public_profiles#show', as: :public_profile
+      get 'public/profiles/:slug/export_pdf', to: 'public_profiles#export_pdf', as: :public_profile_export_pdf
+
       resources :resumes do
+        collection do
+          get :check_public_slug
+        end
         member do
           patch :draft
+          patch :public_profile
           get :export_pdf
           post :duplicate
         end

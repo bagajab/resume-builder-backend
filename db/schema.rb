@@ -253,6 +253,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_000000) do
     t.datetime "created_at", null: false
     t.integer "current_step", default: 1, null: false
     t.jsonb "layout_config", default: {}, null: false
+    t.boolean "public_profile_enabled", default: false, null: false
+    t.string "public_slug"
+    t.datetime "published_at"
     t.bigint "source_resume_id"
     t.string "status", default: "draft", null: false
     t.bigint "template_id", null: false
@@ -260,6 +263,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_000000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.integer "version", default: 1, null: false
+    t.index ["public_profile_enabled"], name: "index_resumes_on_public_profile_enabled", where: "(public_profile_enabled = true)"
+    t.index ["public_slug"], name: "index_resumes_on_public_slug", unique: true, where: "(public_slug IS NOT NULL)"
     t.index ["source_resume_id"], name: "index_resumes_on_source_resume_id"
     t.index ["template_id"], name: "index_resumes_on_template_id"
     t.index ["user_id", "status"], name: "index_resumes_on_user_id_and_status"

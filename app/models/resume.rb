@@ -4,24 +4,29 @@
 #
 # Table name: resumes
 #
-#  id               :bigint           not null, primary key
-#  current_step     :integer          default(1), not null
-#  layout_config    :jsonb            not null
-#  status           :string           default("draft"), not null
-#  title            :string           default("Untitled Resume"), not null
-#  version          :integer          default(1), not null
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  source_resume_id :bigint
-#  template_id      :bigint           not null
-#  user_id          :bigint           not null
+#  id                     :bigint           not null, primary key
+#  current_step           :integer          default(1), not null
+#  layout_config          :jsonb            not null
+#  public_profile_enabled :boolean          default(FALSE), not null
+#  public_slug            :string
+#  published_at           :datetime
+#  status                 :string           default("draft"), not null
+#  title                  :string           default("Untitled Resume"), not null
+#  version                :integer          default(1), not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  source_resume_id       :bigint
+#  template_id            :bigint           not null
+#  user_id                :bigint           not null
 #
 # Indexes
 #
-#  index_resumes_on_source_resume_id    (source_resume_id)
-#  index_resumes_on_template_id         (template_id)
-#  index_resumes_on_user_id             (user_id)
-#  index_resumes_on_user_id_and_status  (user_id,status)
+#  index_resumes_on_public_profile_enabled  (public_profile_enabled) WHERE (public_profile_enabled = true)
+#  index_resumes_on_public_slug             (public_slug) UNIQUE WHERE (public_slug IS NOT NULL)
+#  index_resumes_on_source_resume_id        (source_resume_id)
+#  index_resumes_on_template_id             (template_id)
+#  index_resumes_on_user_id                 (user_id)
+#  index_resumes_on_user_id_and_status      (user_id,status)
 #
 # Foreign Keys
 #
@@ -30,6 +35,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Resume < ApplicationRecord
+  include PublicProfileSlug
+
   STATUSES = %w[draft completed].freeze
   STEPS = 6
 
@@ -61,6 +68,7 @@ class Resume < ApplicationRecord
   scope :originals, -> { where(source_resume_id: nil) }
 
   before_validation :assign_default_template, on: :create
+  before_save :sync_published_at
 
   def template_slug
     template&.slug
@@ -77,7 +85,10 @@ class Resume < ApplicationRecord
       source_resume: self,
       title: "#{title} (Copy)",
       status: 'draft',
-      version: version + 1
+      version: version + 1,
+      public_slug: nil,
+      public_profile_enabled: false,
+      published_at: nil
     )
     dup_resume.save!
 
@@ -89,6 +100,12 @@ class Resume < ApplicationRecord
 
   def assign_default_template
     self.template ||= Template.find_by(slug: 'classic')
+  end
+
+  def sync_published_at
+    return unless public_profile_enabled_changed?
+
+    self.published_at = public_profile_enabled? ? (published_at || Time.current) : published_at
   end
 
   def duplicate_associations_to(dup_resume)

@@ -10,6 +10,10 @@ json.template do
   json.partial! 'api/v1/templates/template', template: resume.template
 end
 json.layout_config resume.layout_config
+json.public_slug resume.public_slug
+json.public_profile_enabled resume.public_profile_enabled
+json.published_at resume.published_at
+json.public_profile_url resume.public_profile_url
 json.source_resume_id resume.source_resume_id
 json.created_at   resume.created_at
 json.updated_at   resume.updated_at

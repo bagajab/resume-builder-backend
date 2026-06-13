@@ -8,4 +8,6 @@ json.resumes @resumes do |resume|
   json.version      resume.version
   json.updated_at   resume.updated_at
   json.full_name    resume.profile&.full_name
+  json.public_slug  resume.public_slug
+  json.public_profile_enabled resume.public_profile_enabled
 end
