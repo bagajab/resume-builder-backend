@@ -32,9 +32,10 @@ module API
         user.allow_password_change = true if user.needs_password_setup?
 
         token = user.create_token
+        headers = user.build_auth_headers(token.token, token.client)
         user.save!
 
-        response.headers.merge!(user.build_auth_headers(token.token, token.client))
+        response.headers.merge!(headers)
         @resource = user
         render 'api/v1/sessions/create', status: :ok
       end

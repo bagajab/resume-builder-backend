@@ -50,6 +50,23 @@ class User < ApplicationRecord
     provider != 'email' && !password_set
   end
 
+  # DeviseTokenAuth reads tokens[client] for expiry; token cleanup on save can remove
+  # the new client before headers are built. Fall back to default lifespan when missing.
+  def build_auth_headers(token, client = 'default')
+    entry = tokens[client]
+    expiry = entry&.dig('expiry') || entry&.dig(:expiry)
+    expiry ||= (Time.zone.now + DeviseTokenAuth.token_lifespan).to_i
+
+    headers = {
+      DeviseTokenAuth.headers_names[:'access-token'] => token,
+      DeviseTokenAuth.headers_names[:'token-type'] => 'Bearer',
+      DeviseTokenAuth.headers_names[:'client'] => client,
+      DeviseTokenAuth.headers_names[:'expiry'] => expiry.to_s,
+      DeviseTokenAuth.headers_names[:'uid'] => uid
+    }
+    headers.merge(build_bearer_token(headers))
+  end
+
   RANSACK_ATTRIBUTES = %w[id email first_name last_name username sign_in_count current_sign_in_at
                           last_sign_in_at current_sign_in_ip last_sign_in_ip provider uid
                           created_at updated_at].freeze
