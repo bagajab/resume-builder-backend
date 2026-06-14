@@ -3,6 +3,7 @@
 module API
   module V1
     class OauthController < API::V1::APIController
+      include API::Concerns::FreshTokenOnSignIn
       skip_before_action :authenticate_user!
       skip_after_action :verify_authorized
 
@@ -31,9 +32,7 @@ module API
       def sign_in_oauth_user(user)
         user.allow_password_change = true if user.needs_password_setup?
 
-        token = user.create_token
-        headers = user.build_auth_headers(token.token, token.client)
-        user.save!
+        _token, headers = create_fresh_token_for!(user)
 
         response.headers.merge!(headers)
         @resource = user
