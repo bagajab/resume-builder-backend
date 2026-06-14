@@ -14,6 +14,7 @@
 #  last_name              :string           default("")
 #  last_sign_in_at        :datetime
 #  last_sign_in_ip        :inet
+#  password_set           :boolean          default(FALSE), not null
 #  provider               :string           default("email"), not null
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
@@ -43,6 +44,11 @@ class User < ApplicationRecord
   attribute :impersonated_by, :integer
 
   before_validation :init_uid
+  before_validation :set_password_set_for_email_signup, on: :create
+
+  def needs_password_setup?
+    provider != 'email' && !password_set
+  end
 
   RANSACK_ATTRIBUTES = %w[id email first_name last_name username sign_in_count current_sign_in_at
                           last_sign_in_at current_sign_in_ip last_sign_in_ip provider uid
@@ -72,5 +78,9 @@ class User < ApplicationRecord
 
   def init_uid
     self.uid = email if uid.blank? && provider == 'email'
+  end
+
+  def set_password_set_for_email_signup
+    self.password_set = true if provider.blank? || provider == 'email'
   end
 end

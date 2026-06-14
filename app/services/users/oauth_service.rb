@@ -88,7 +88,9 @@ module Users
           first_name: profile.first_name,
           last_name: profile.last_name,
           username: generate_username(profile.email),
-          password: Devise.friendly_token[0, 20]
+          password: Devise.friendly_token[0, 20],
+          password_set: false,
+          allow_password_change: true
         )
       end
 

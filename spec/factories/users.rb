@@ -14,6 +14,7 @@
 #  last_name              :string           default("")
 #  last_sign_in_at        :datetime
 #  last_sign_in_ip        :inet
+#  password_set           :boolean          default(FALSE), not null
 #  provider               :string           default("email"), not null
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string

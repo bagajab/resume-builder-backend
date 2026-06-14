@@ -29,6 +29,8 @@ module API
       private
 
       def sign_in_oauth_user(user)
+        user.allow_password_change = true if user.needs_password_setup?
+
         token = user.create_token
         user.save!
 

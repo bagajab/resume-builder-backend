@@ -61,6 +61,10 @@ describe 'POST api/v1/users/oauth/facebook' do
       client = response.header['client']
       expect(existing_user.reload).to be_valid_token(token, client)
     end
+
+    it 'does not require password setup for email accounts' do
+      expect(json[:user][:needs_password_setup]).to be(false)
+    end
   end
 
   context 'with a valid access token' do
@@ -88,6 +92,7 @@ describe 'POST api/v1/users/oauth/facebook' do
     it 'returns the user payload' do
       expect(json[:user][:email]).to eq('facebook.user@example.com')
       expect(json[:user][:provider]).to eq('facebook')
+      expect(json[:user][:needs_password_setup]).to be(true)
     end
   end
 

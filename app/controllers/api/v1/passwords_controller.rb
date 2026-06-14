@@ -29,6 +29,7 @@ module API
         end
 
         if @resource.send(resource_update_method, password_resource_params)
+          @resource.password_set = true
           @resource.allow_password_change = false if recoverable_enabled?
           @resource.save!
 
