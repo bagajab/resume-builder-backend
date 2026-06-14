@@ -110,7 +110,8 @@ class Resume < ApplicationRecord
 
   def duplicate_associations_to(dup_resume)
     if profile.present?
-      dup_resume.create_profile!(profile.attributes.except('id', 'resume_id', 'created_at', 'updated_at'))
+      dup_profile = dup_resume.create_profile!(profile.attributes.except('id', 'resume_id', 'created_at', 'updated_at'))
+      dup_profile.photo.attach(profile.photo.blob) if profile.photo.attached?
     end
 
     experiences.find_each { |record| dup_resume.experiences.create!(record.attributes.except('id', 'resume_id', 'created_at', 'updated_at')) }
