@@ -67,4 +67,26 @@ describe 'POST api/v1/users/sign_in' do
       expect(json).to eq(expected_response)
     end
   end
+
+  context 'when the user signed up with OAuth' do
+    let(:password) { 'password' }
+    let(:user) { create(:user, provider: 'google_oauth2', uid: 'google-sub-id', password:) }
+
+    before { subject }
+
+    it 'returns success' do
+      expect(response).to be_successful
+    end
+
+    it 'returns the OAuth user' do
+      expect(json[:user][:id]).to eq(user.id)
+      expect(json[:user][:provider]).to eq('google_oauth2')
+    end
+
+    it 'returns a valid client and access token' do
+      token = response.header['access-token']
+      client = response.header['client']
+      expect(user.reload).to be_valid_token(token, client)
+    end
+  end
 end

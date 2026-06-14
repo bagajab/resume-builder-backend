@@ -40,6 +40,29 @@ describe 'POST api/v1/users/oauth/facebook' do
       )
   end
 
+  context 'when an email account already exists' do
+    let!(:existing_user) do
+      create(:user, email: 'facebook.user@example.com', provider: 'email', password: 'password')
+    end
+
+    before { subject }
+
+    it 'returns success' do
+      expect(response).to be_successful
+    end
+
+    it 'links OAuth to the existing user instead of creating a duplicate' do
+      expect(User.where(email: 'facebook.user@example.com').count).to eq(1)
+      expect(existing_user.reload.provider).to eq('email')
+    end
+
+    it 'returns auth headers for the existing user' do
+      token = response.header['access-token']
+      client = response.header['client']
+      expect(existing_user.reload).to be_valid_token(token, client)
+    end
+  end
+
   context 'with a valid access token' do
     before { subject }
 

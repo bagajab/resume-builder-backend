@@ -14,6 +14,7 @@ module API
       end
 
       def render_create_success
+        response.headers.merge!(@resource.build_auth_headers(@token.token, @token.client))
         render :create
       end
 

@@ -74,17 +74,11 @@ module Users
 
         existing = User.find_by(email: profile.email)
         if existing
-          if existing.provider == profile.provider
+          if existing.provider == profile.provider && existing.uid != profile.uid
             existing.update!(uid: profile.uid)
-            return existing
           end
 
-          if existing.provider == 'email'
-            existing.update!(provider: profile.provider, uid: profile.uid)
-            return existing
-          end
-
-          raise Error, 'An account with this email already exists. Sign in with email and password.'
+          return existing
         end
 
         User.create!(

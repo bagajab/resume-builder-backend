@@ -4,6 +4,7 @@ module API
   module V1
     class SessionsController < DeviseTokenAuth::SessionsController
       include API::Concerns::ActAsAPIRequest
+      include API::Concerns::FindUserByEmailForAuth
 
       protect_from_forgery with: :null_session
 
@@ -14,6 +15,9 @@ module API
       end
 
       def render_create_success
+        # DeviseTokenAuth's after_action can skip headers (e.g. with enable_standard_devise_support);
+        # set them explicitly, matching OauthController, so clients can persist auth.
+        response.headers.merge!(@resource.build_auth_headers(@token.token, @token.client))
         render :create
       end
 
