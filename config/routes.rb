@@ -23,6 +23,10 @@ Rails.application.routes.draw do
 
       resources :templates, only: %i[index]
 
+      resources :jobs, only: %i[index show] do
+        get :filters, on: :collection
+      end
+
       get 'public/profiles/:slug', to: 'public_profiles#show', as: :public_profile
       get 'public/profiles/:slug/export_pdf', to: 'public_profiles#export_pdf', as: :public_profile_export_pdf
 

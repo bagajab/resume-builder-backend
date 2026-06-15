@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_14_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -210,6 +210,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_000000) do
     t.index ["priority", "scheduled_at"], name: "index_good_jobs_on_priority_scheduled_at_unfinished_unlocked", where: "((finished_at IS NULL) AND (locked_by_id IS NULL))"
     t.index ["queue_name", "scheduled_at"], name: "index_good_jobs_on_queue_name_and_scheduled_at", where: "(finished_at IS NULL)"
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
+  end
+
+  create_table "jobs", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "apply_url"
+    t.string "category"
+    t.string "company_logo_url"
+    t.string "company_name"
+    t.datetime "created_at", null: false
+    t.date "deadline_on"
+    t.text "description"
+    t.string "education_level"
+    t.string "employment_type"
+    t.string "experience_level"
+    t.datetime "first_seen_at", null: false
+    t.datetime "last_seen_at", null: false
+    t.string "location"
+    t.jsonb "metadata", default: {}, null: false
+    t.date "posted_on"
+    t.string "region"
+    t.boolean "remote", default: false, null: false
+    t.string "salary"
+    t.string "source", null: false
+    t.string "source_uid"
+    t.text "summary"
+    t.string "tags", default: [], null: false, array: true
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["active"], name: "index_jobs_on_active"
+    t.index ["deadline_on"], name: "index_jobs_on_deadline_on"
+    t.index ["posted_on"], name: "index_jobs_on_posted_on"
+    t.index ["source", "source_uid"], name: "index_jobs_on_source_and_source_uid"
+    t.index ["source"], name: "index_jobs_on_source"
+    t.index ["tags"], name: "index_jobs_on_tags", using: :gin
+    t.index ["url"], name: "index_jobs_on_url", unique: true
   end
 
   create_table "projects", force: :cascade do |t|
