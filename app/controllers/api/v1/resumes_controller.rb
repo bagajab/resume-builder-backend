@@ -132,7 +132,7 @@ module API
             :columns,
             :divider_color,
             :bullet_icon,
-            { section_order: [], hidden_sections: [],
+            { section_order: [], hidden_sections: [], page_breaks: [],
               custom_sections: [:id, :title, :column, :layout, :heading_color, :bullet_icon,
                                  { items: [:text, :icon] }],
               grid: [:columns, :row_height, { items: %i[section_id col row col_span row_span] }] }

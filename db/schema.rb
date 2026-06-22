@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_20_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -74,6 +75,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
     t.index ["resume_id"], name: "index_certifications_on_resume_id"
   end
 
+  create_table "cities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_cities_on_normalized_value", unique: true
+    t.index ["status"], name: "index_cities_on_status"
+    t.index ["submitted_by_user_id"], name: "index_cities_on_submitted_by_user_id"
+    t.index ["value"], name: "index_cities_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "countries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_countries_on_normalized_value", unique: true
+    t.index ["status"], name: "index_countries_on_status"
+    t.index ["submitted_by_user_id"], name: "index_countries_on_submitted_by_user_id"
+    t.index ["value"], name: "index_countries_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "degrees", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_degrees_on_normalized_value", unique: true
+    t.index ["status"], name: "index_degrees_on_status"
+    t.index ["submitted_by_user_id"], name: "index_degrees_on_submitted_by_user_id"
+    t.index ["value"], name: "index_degrees_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
   create_table "educations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "degree"
@@ -104,6 +150,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
     t.jsonb "technologies", default: [], null: false
     t.datetime "updated_at", null: false
     t.index ["resume_id"], name: "index_experiences_on_resume_id"
+  end
+
+  create_table "fields_of_study", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_fields_of_study_on_normalized_value", unique: true
+    t.index ["status"], name: "index_fields_of_study_on_status"
+    t.index ["submitted_by_user_id"], name: "index_fields_of_study_on_submitted_by_user_id"
+    t.index ["value"], name: "index_fields_of_study_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -212,6 +273,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "industries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_industries_on_normalized_value", unique: true
+    t.index ["status"], name: "index_industries_on_status"
+    t.index ["submitted_by_user_id"], name: "index_industries_on_submitted_by_user_id"
+    t.index ["value"], name: "index_industries_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "interests", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_interests_on_normalized_value", unique: true
+    t.index ["status"], name: "index_interests_on_status"
+    t.index ["submitted_by_user_id"], name: "index_interests_on_submitted_by_user_id"
+    t.index ["value"], name: "index_interests_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "job_titles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_job_titles_on_normalized_value", unique: true
+    t.index ["status"], name: "index_job_titles_on_status"
+    t.index ["submitted_by_user_id"], name: "index_job_titles_on_submitted_by_user_id"
+    t.index ["value"], name: "index_job_titles_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
   create_table "jobs", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.string "apply_url"
@@ -246,6 +352,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
     t.index ["source"], name: "index_jobs_on_source"
     t.index ["tags"], name: "index_jobs_on_tags", using: :gin
     t.index ["url"], name: "index_jobs_on_url", unique: true
+  end
+
+  create_table "language_proficiencies", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_language_proficiencies_on_normalized_value", unique: true
+    t.index ["status"], name: "index_language_proficiencies_on_status"
+    t.index ["submitted_by_user_id"], name: "index_language_proficiencies_on_submitted_by_user_id"
+    t.index ["value"], name: "index_language_proficiencies_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "languages", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_languages_on_normalized_value", unique: true
+    t.index ["status"], name: "index_languages_on_status"
+    t.index ["submitted_by_user_id"], name: "index_languages_on_submitted_by_user_id"
+    t.index ["value"], name: "index_languages_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "projects", force: :cascade do |t|
@@ -315,6 +451,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
+  create_table "skill_options", force: :cascade do |t|
+    t.string "category", default: "technical", null: false
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["category"], name: "index_skill_options_on_category"
+    t.index ["normalized_value", "category"], name: "index_skill_options_on_normalized_value_and_category", unique: true
+    t.index ["status"], name: "index_skill_options_on_status"
+    t.index ["submitted_by_user_id"], name: "index_skill_options_on_submitted_by_user_id"
+    t.index ["value"], name: "index_skill_options_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
   create_table "skills", force: :cascade do |t|
     t.string "category", default: "technical", null: false
     t.string "color"
@@ -326,6 +479,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
     t.datetime "updated_at", null: false
     t.index ["resume_id", "category"], name: "index_skills_on_resume_id_and_category"
     t.index ["resume_id"], name: "index_skills_on_resume_id"
+  end
+
+  create_table "technologies", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "normalized_value", null: false
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "approved", null: false
+    t.bigint "submitted_by_user_id"
+    t.datetime "updated_at", null: false
+    t.integer "usage_count", default: 0, null: false
+    t.string "value", null: false
+    t.index ["normalized_value"], name: "index_technologies_on_normalized_value", unique: true
+    t.index ["status"], name: "index_technologies_on_status"
+    t.index ["submitted_by_user_id"], name: "index_technologies_on_submitted_by_user_id"
+    t.index ["value"], name: "index_technologies_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "templates", force: :cascade do |t|
@@ -364,12 +532,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_000008) do
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "certifications", "resumes"
+  add_foreign_key "cities", "users", column: "submitted_by_user_id"
+  add_foreign_key "countries", "users", column: "submitted_by_user_id"
+  add_foreign_key "degrees", "users", column: "submitted_by_user_id"
   add_foreign_key "educations", "resumes"
   add_foreign_key "experiences", "resumes"
+  add_foreign_key "fields_of_study", "users", column: "submitted_by_user_id"
+  add_foreign_key "industries", "users", column: "submitted_by_user_id"
+  add_foreign_key "interests", "users", column: "submitted_by_user_id"
+  add_foreign_key "job_titles", "users", column: "submitted_by_user_id"
+  add_foreign_key "language_proficiencies", "users", column: "submitted_by_user_id"
+  add_foreign_key "languages", "users", column: "submitted_by_user_id"
   add_foreign_key "projects", "resumes"
   add_foreign_key "resume_profiles", "resumes"
   add_foreign_key "resumes", "resumes", column: "source_resume_id"
   add_foreign_key "resumes", "templates"
   add_foreign_key "resumes", "users"
+  add_foreign_key "skill_options", "users", column: "submitted_by_user_id"
   add_foreign_key "skills", "resumes"
+  add_foreign_key "technologies", "users", column: "submitted_by_user_id"
 end

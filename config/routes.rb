@@ -23,6 +23,11 @@ Rails.application.routes.draw do
 
       resources :templates, only: %i[index]
 
+      # Backend-managed dropdown options for the resume editor. `:list` is a
+      # whitelisted slug (see LookupsController::REGISTRY).
+      get  'lookups/:list', to: 'lookups#index', as: :lookups
+      post 'lookups/:list', to: 'lookups#create'
+
       resources :jobs, only: %i[index show] do
         get :filters, on: :collection
       end
