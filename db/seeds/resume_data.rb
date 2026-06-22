@@ -39,7 +39,15 @@ module Seeds
       { slug: 'minimal', name: 'Minimal', description: 'Clean, whitespace-focused layout with subtle typography' },
       { slug: 'professional', name: 'Professional', description: 'Two-column executive layout with accent headings and structured entries' },
       { slug: 'spotlight', name: 'Spotlight', description: 'Two-column layout with a bold indigo sidebar, skill meters, language rings and section badges' },
-      { slug: 'double', name: 'Double Column', description: 'Clean two-column layout with a contact header, photo, icon-badged achievements and interests, courses, skills and dotted language meters' }
+      { slug: 'double', name: 'Double Column', description: 'Clean two-column layout with a contact header, photo, icon-badged achievements and interests, courses, skills and dotted language meters' },
+      { slug: 'crisp', name: 'Crisp', description: 'Bold full-width accent banner header with a two-column body — summary, experience, education and dotted languages alongside icon-led achievements, underlined skills, courses and interests' },
+      { slug: 'clarity', name: 'Clarity', description: 'Airy two-column layout with an accent name header and dotted corner motif — summary, accent skill pills, experience and dotted languages alongside icon-led achievements, courses, education and interests' },
+      { slug: 'polished', name: 'Polished', description: 'Executive two-column layout with a plain header, bold black section rules, comma-separated skills and bar-meter languages alongside achievements, education, courses and interests' },
+      { slug: 'elegant', name: 'Elegant', description: 'Refined single-column layout with centered serif headings, a monochrome palette and a three-column key achievements grid' },
+      { slug: 'meridian', name: 'Meridian', description: 'Two-column layout with a bold dark sidebar carrying the photo, achievements, education, skills and courses beside a light main column' },
+      { slug: 'vertex', name: 'Vertex', description: 'Single-column layout with heavy section rules, a blue accent, a two-column achievements grid, bar-meter languages and comma-separated core competencies' },
+      { slug: 'aspect', name: 'Aspect', description: 'Two-column layout with a light sidebar carrying the photo, achievements, education, skills, courses and interests beside the main experience column' },
+      { slug: 'timeline', name: 'Timeline', description: 'Single-column layout with a vertical timeline rail for experience and education, underlined skill chips and progress-bar languages' }
     ].freeze
 
     def ensure_templates!

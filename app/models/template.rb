@@ -16,6 +16,8 @@
 #  index_templates_on_slug  (slug) UNIQUE
 #
 class Template < ApplicationRecord
+  RANSACK_ATTRIBUTES = %w[id slug name created_at updated_at].freeze
+
   has_many :resumes, dependent: :restrict_with_error
 
   validates :name, presence: true
