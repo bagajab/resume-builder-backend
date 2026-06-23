@@ -57,8 +57,11 @@ RUN SECRET_KEY_BASE=DUMMY ./bin/rails assets:precompile
 FROM base
 
 # Install packages needed for deployment
+# libreoffice-writer provides the `soffice` binary used by
+# Resumes::DocumentConverter to turn uploaded DOC/DOCX resumes into PDF before
+# sending them to the Anthropic API (which only accepts PDF/images).
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libpq-dev libvips libjemalloc2 libyaml-dev && \
+    apt-get install --no-install-recommends -y curl libpq-dev libvips libjemalloc2 libyaml-dev libreoffice-writer && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV USERNAME=rails_api_base

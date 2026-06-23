@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       resources :resumes do
         collection do
           get :check_public_slug
+          post :import
         end
         member do
           patch :draft

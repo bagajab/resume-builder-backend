@@ -7,8 +7,11 @@ FROM node:$NODE_VERSION AS node
 # Ruby build image.
 FROM ruby:${RUBY_VERSION}-slim
 
+# libreoffice-writer provides the `soffice` binary used by
+# Resumes::DocumentConverter to turn uploaded DOC/DOCX resumes into PDF before
+# sending them to the Anthropic API (which only accepts PDF/images).
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential libssl-dev libpq-dev vim git libsasl2-dev libyaml-dev curl && \
+    apt-get install --no-install-recommends -y build-essential libssl-dev libpq-dev vim git libsasl2-dev libyaml-dev curl libreoffice-writer && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy node binaries from node image.

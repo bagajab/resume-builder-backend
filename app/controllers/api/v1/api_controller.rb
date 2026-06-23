@@ -15,11 +15,17 @@ module API
       rescue_from ActiveRecord::RecordNotFound,        with: :render_not_found
       rescue_from ActiveRecord::RecordInvalid,         with: :render_record_invalid
       rescue_from ActionController::ParameterMissing,  with: :render_parameter_missing
+      rescue_from Resumes::ImportError,                with: :render_import_error
 
       private
 
       def render_not_found(exception)
         render_error(exception, { message: I18n.t('api.errors.not_found') }, :not_found)
+      end
+
+      # Resume upload/parse failures carry a user-friendly message already.
+      def render_import_error(exception)
+        render_error(exception, { message: exception.message }, :unprocessable_content)
       end
 
       def render_record_invalid(exception)

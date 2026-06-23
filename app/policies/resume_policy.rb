@@ -19,6 +19,10 @@ class ResumePolicy < ApplicationPolicy
     true
   end
 
+  def import?
+    true
+  end
+
   def update?
     owner?
   end

@@ -1,0 +1,13 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Command Injection",
+      "fingerprint": "eb2efd4623275c10be30c3bdc428739e449498dafe840ec466c53ea8decd446f",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/objects/resumes/document_converter.rb",
+      "note": "False positive. `soffice` is invoked via Open3.capture2e in ARRAY form (no shell), so arguments are passed as separate argv entries and are not shell-interpreted. The only non-literal arguments are an Anthropic-side temp directory (Dir.mktmpdir) and a filename whose extension is pinned to the frozen ALLOWED_EXTENSIONS allowlist (.doc/.docx) — no caller-supplied data reaches the command."
+    }
+  ],
+  "brakeman_version": "8.0.4"
+}

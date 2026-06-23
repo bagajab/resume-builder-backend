@@ -22,6 +22,15 @@ module API
         render :show, status: :created
       end
 
+      # Onboarding "upload your resume" path: a multipart file is parsed by
+      # Anthropic and turned into a fully pre-filled resume the user then edits
+      # in the wizard. All logic lives in Resumes::ResumeImporter.
+      def import
+        authorize Resume
+        @resume = Resumes::ResumeImporter.new(user: current_user, file: params[:file]).call
+        render :show, status: :created
+      end
+
       def update
         authorize @resume
         attrs = update_params

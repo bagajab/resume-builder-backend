@@ -9,6 +9,8 @@ gem 'rails', '~> 8.1.3'
 # Gems
 gem 'activeadmin', '~> 3.5'
 gem 'active_storage_base64', '~> 3.0.1'
+# Official Anthropic SDK — powers AI resume parsing (Resumes::ResumeParser).
+gem 'anthropic', '~> 1.0'
 gem 'aws-sdk-s3', '~> 1.223', require: false
 gem 'bootsnap', '~> 1.24'
 gem 'cssbundling-rails', '~> 1.4'

@@ -105,6 +105,10 @@ GEM
     annotaterb (4.22.0)
       activerecord (>= 6.0.0)
       activesupport (>= 6.0.0)
+    anthropic (1.49.0)
+      cgi
+      connection_pool
+      standardwebhooks
     arbre (1.7.0)
       activesupport (>= 3.0.0)
       ruby2_keywords (>= 0.0.2)
@@ -147,6 +151,7 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
+    cgi (0.5.2)
     chaotic_order (0.1.0)
       rails (>= 5.0)
     childprocess (5.1.0)
@@ -632,6 +637,7 @@ GEM
       actionpack (>= 6.1)
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
+    standardwebhooks (1.1.0)
     stringio (3.2.0)
     strong_migrations (2.8.0)
       activerecord (>= 7.2)
@@ -677,6 +683,7 @@ DEPENDENCIES
   active_storage_base64 (~> 3.0.1)
   activeadmin (~> 3.5)
   annotaterb (~> 4.22.0)
+  anthropic (~> 1.0)
   aws-sdk-s3 (~> 1.223)
   bootsnap (~> 1.24)
   brakeman (~> 8.0)
@@ -745,4 +752,4 @@ RUBY VERSION
   ruby 4.0.1p0
 
 BUNDLED WITH
-  4.0.4
+  4.0.3
