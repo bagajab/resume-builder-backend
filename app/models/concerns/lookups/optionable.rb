@@ -23,7 +23,12 @@ module Lookups
       validates :value, presence: true, length: { maximum: 255 }
       validates :status, inclusion: { in: STATUSES }
 
-      if table_exists? && column_names.include?('category')
+      # `available_column_names` is used (not a bare `table_exists?`) because this
+      # block is evaluated when each lookup model is eager-loaded — and ActiveAdmin
+      # draws its routes — during `assets:precompile`, which runs without a database.
+      columns = available_column_names
+
+      if columns.include?('category')
         validates :normalized_value, presence: true, uniqueness: { scope: :category, case_sensitive: false }
       else
         validates :normalized_value, presence: true, uniqueness: { case_sensitive: false }
@@ -37,8 +42,7 @@ module Lookups
 
       # Whitelist the columns ActiveAdmin filters/sorts on (see app/models/concerns/
       # ransackable.rb). Without this, Ransack raises on `value_cont` etc.
-      allowed = table_exists? ? column_names : []
-      const_set(:RANSACK_ATTRIBUTES, (allowed & %w[
+      const_set(:RANSACK_ATTRIBUTES, (columns & %w[
         id value normalized_value status category usage_count position
         submitted_by_user_id created_at updated_at
       ]).freeze)
@@ -48,6 +52,19 @@ module Lookups
     # Narrow by category only for models that have the column (skill_options);
     # a no-op everywhere else so callers can stay uniform.
     class_methods do
+      # Schema introspection that tolerates a missing database connection. Lookup
+      # models are eager-loaded — and the ActiveAdmin screens in app/admin/lookups.rb
+      # are loaded — during `assets:precompile` (and the Docker image build), which
+      # runs without a database. A bare `table_exists?`/`column_names` issues a query
+      # and raises ConnectionNotEstablished there; treat an unreachable schema as
+      # "no columns yet" so boot/asset compilation can proceed. At real runtime the
+      # connection is present, so the full column list is returned as before.
+      def available_column_names
+        table_exists? ? column_names : []
+      rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
+        []
+      end
+
       def with_category(category)
         return all unless column_names.include?('category') && category.present?
 

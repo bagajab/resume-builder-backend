@@ -10,7 +10,9 @@ LOOKUP_ADMIN_MODELS = [
 ].freeze
 
 LOOKUP_ADMIN_MODELS.each do |lookup_model|
-  has_category = lookup_model.column_names.include?('category')
+  # `available_column_names` (from Lookups::Optionable) tolerates a missing database
+  # connection, so this file can load during `assets:precompile` without a DB.
+  has_category = lookup_model.available_column_names.include?('category')
 
   ActiveAdmin.register lookup_model do
     menu parent: 'Lookups', label: lookup_model.model_name.human.pluralize
