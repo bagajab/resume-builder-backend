@@ -45,6 +45,29 @@ describe Resumes::ResumeParser do
     expect(result[:skills].size).to eq(1)
   end
 
+  it 'keeps a sparse resume valid (null profile lists become [])' do
+    result = parse({ profile: { full_name: 'Sam', languages: nil, interests: nil } }.to_json)
+
+    expect(result.dig(:profile, :full_name)).to eq('Sam')
+    expect(result.dig(:profile, :languages)).to eq([])
+    expect(result.dig(:profile, :interests)).to eq([])
+  end
+
+  it 'coerces present-but-invalid values past model validations' do
+    result = parse({
+      profile: { linkedin_url: 'linkedin.com/in/sam', years_of_experience: 999 },
+      skills: [{ name: 'Go', category: 'programming' }],
+      educations: [{ institution: 'MIT', start_year: 20 }],
+      projects: [{ title: 'Site', url: 'github.com/sam/site' }]
+    }.to_json)
+
+    expect(result.dig(:profile, :linkedin_url)).to eq('https://linkedin.com/in/sam')
+    expect(result.dig(:profile, :years_of_experience)).to be_nil
+    expect(result[:skills].first[:category]).to eq('technical')
+    expect(result[:educations].first[:start_year]).to be_nil
+    expect(result[:projects].first[:url]).to eq('https://github.com/sam/site')
+  end
+
   it 'raises a ParseError on non-JSON output' do
     expect { parse('this is not json') }.to raise_error(Resumes::ImportError, /could not read/i)
   end

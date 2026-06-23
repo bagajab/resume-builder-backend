@@ -62,6 +62,20 @@ describe 'API::V1::Resumes import' do
       expect(resume.experiences.pluck(:company)).to include('Acme')
     end
 
+    it 'imports a sparse resume that only has a name' do
+      stub_parser(result: { title: 'Sam', profile: { full_name: 'Sam' },
+                            skills: [], experiences: [], educations: [],
+                            certifications: [], projects: [] })
+
+      post '/api/v1/resumes/import', params: { file: pdf }, headers: auth_headers
+
+      expect(response).to have_http_status(:created)
+      resume = user.resumes.last
+      expect(resume.profile.full_name).to eq('Sam')
+      expect(resume.skills).to be_empty
+      expect(resume.experiences).to be_empty
+    end
+
     it 'maps values to existing approved lookups (canonical casing)' do
       create(:job_title, value: 'React Developer', status: 'approved')
       stub_parser

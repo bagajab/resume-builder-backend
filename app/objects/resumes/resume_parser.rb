@@ -10,82 +10,13 @@ module Resumes
   #
   # Uses claude-haiku-4-5 — the cheapest model that supports document/vision
   # input — per the onboarding spec's "most cost-effective model" requirement.
+  # Prompt text lives in Resumes::ResumeParser::Prompt.
   class ResumeParser
     MODEL = 'claude-haiku-4-5'
     MAX_TOKENS = 8_000
     TIMEOUT_SECONDS = 120
-
-    PROMPT = <<~PROMPT
-      You are a resume parser. Read the attached resume document and extract its
-      contents into a single JSON object with EXACTLY this shape (use null or []
-      for anything not present — never invent data):
-
-      {
-        "title": string,                      // e.g. "Jane Doe — Resume"
-        "profile": {
-          "full_name": string|null,
-          "phone": string|null,
-          "location_city": string|null,
-          "location_country": string|null,
-          "linkedin_url": string|null,        // full https:// URL or null
-          "github_url": string|null,
-          "portfolio_url": string|null,
-          "job_title": string|null,           // current/most-recent title
-          "years_of_experience": integer|null, // 0..60
-          "industry": string|null,
-          "career_summary": string|null,
-          "languages": [{ "name": string, "proficiency": string|null }],
-          "awards": [{ "title": string, "organization": string|null, "date": string|null }],
-          "volunteer_experiences": [{ "role": string, "organization": string|null, "description": string|null, "date": string|null }],
-          "interests": [string]
-        },
-        "experiences": [{
-          "job_title": string|null,
-          "company": string|null,
-          "location": string|null,
-          "start_date": string|null,          // ISO "YYYY-MM-DD" (use -01 for an unknown day) or null
-          "end_date": string|null,            // ISO "YYYY-MM-DD" or null if current
-          "current": boolean,
-          "responsibilities": [string],
-          "achievements": [string],
-          "technologies": [string]
-        }],
-        "educations": [{
-          "institution": string|null,
-          "degree": string|null,
-          "field_of_study": string|null,
-          "start_year": integer|null,
-          "end_year": integer|null,
-          "gpa": string|null,
-          "honors": string|null
-        }],
-        "certifications": [{
-          "name": string|null,
-          "issuer": string|null,
-          "issue_date": string|null,          // ISO "YYYY-MM-DD" or null
-          "expiry_date": string|null,         // ISO "YYYY-MM-DD" or null
-          "url": string|null
-        }],
-        "skills": [{
-          "name": string,
-          "category": "technical"|"soft"|"tools" // best guess; default "technical"
-        }],
-        "projects": [{
-          "title": string|null,
-          "description": string|null,
-          "url": string|null,
-          "date": string|null,
-          "role": string|null
-        }]
-      }
-
-      Rules:
-      - Respond with ONLY the JSON object. No prose, no markdown fences.
-      - Experience and certification dates must be ISO "YYYY-MM-DD" or null.
-      - Project, award and volunteer dates may stay as plain text.
-      - "years_of_experience" must be an integer between 0 and 60, or null.
-      - URLs must be absolute (start with http:// or https://) or null.
-    PROMPT
+    SKILL_CATEGORIES = %w[technical soft tools].freeze
+    URL_SCHEME = %r{\Ahttps?://}
 
     def initialize(data:, media_type:, client: nil)
       @data = data
@@ -105,6 +36,7 @@ module Resumes
       client.messages.create( # rubocop:disable Rails/SaveBang -- Anthropic SDK call, not ActiveRecord
         model: MODEL,
         max_tokens: MAX_TOKENS,
+        system_: [{ type: 'text', text: Prompt::SYSTEM, cache_control: { type: 'ephemeral' } }],
         messages: [{ role: 'user', content: content_blocks }]
       )
     rescue StandardError => e
@@ -112,7 +44,7 @@ module Resumes
     end
 
     def content_blocks
-      [document_block, { type: 'text', text: PROMPT }]
+      [document_block, { type: 'text', text: Prompt::USER }]
     end
 
     def document_block
@@ -133,17 +65,45 @@ module Resumes
       raise ImportError, "Could not read the resume contents: #{e.message}"
     end
 
-    # Guards against common LLM omissions so persisting via DraftUpdater never
-    # trips a NOT NULL constraint: required jsonb arrays default to [], the
-    # `current` flag to a boolean, and child records missing every identifying
-    # field are dropped (a NOT NULL string column can't be satisfied otherwise).
+    # Normalize whatever the model returned so a partial or slightly-off parse
+    # still persists — we only work with the data we actually got. Missing fields
+    # stay missing; entries lacking their required field are dropped, and
+    # present-but-invalid values are coerced past model validations (NOT NULL
+    # jsonb arrays, the `current` flag, URLs without a scheme, out-of-range years,
+    # unknown skill categories) rather than failing the whole import.
     def sanitize(parsed)
+      sanitize_profile(parsed)
       sanitize_experiences(parsed)
-      sanitize_collection(parsed, :skills, :name)
-      sanitize_collection(parsed, :educations, :institution)
-      sanitize_collection(parsed, :certifications, :name)
-      sanitize_collection(parsed, :projects, :title)
+      sanitize_skills(parsed)
+      sanitize_educations(parsed)
+      sanitize_certifications(parsed)
+      sanitize_projects(parsed)
       parsed
+    end
+
+    def sanitize_profile(parsed)
+      profile = parsed[:profile]
+      return unless profile.is_a?(Hash)
+
+      coalesce_profile_lists(profile)
+      repair_profile_urls(profile)
+      return unless profile.key?(:years_of_experience)
+
+      profile[:years_of_experience] = int_within(profile[:years_of_experience], 0, 60)
+    end
+
+    # Profile list fields are NOT NULL jsonb (default []); coalesce an explicit
+    # null to []. Absent keys are left untouched (the DB default applies).
+    def coalesce_profile_lists(profile)
+      %i[languages awards volunteer_experiences interests].each do |key|
+        profile[key] = Array(profile[key]) if profile.key?(key)
+      end
+    end
+
+    def repair_profile_urls(profile)
+      %i[linkedin_url github_url portfolio_url].each do |key|
+        profile[key] = normalize_url(profile[key]) if profile.key?(key)
+      end
     end
 
     def sanitize_experiences(parsed)
@@ -165,8 +125,59 @@ module Resumes
       )
     end
 
-    def sanitize_collection(parsed, key, required_field)
-      parsed[key] = Array(parsed[key]).select { |item| item[required_field].present? }
+    def sanitize_skills(parsed)
+      parsed[:skills] = Array(parsed[:skills]).filter_map do |skill|
+        next if skill[:name].blank?
+
+        category = SKILL_CATEGORIES.include?(skill[:category]) ? skill[:category] : 'technical'
+        skill.merge(category: category)
+      end
+    end
+
+    def sanitize_educations(parsed)
+      parsed[:educations] = Array(parsed[:educations]).filter_map do |education|
+        next if education[:institution].blank?
+
+        education.merge(
+          start_year: int_within(education[:start_year], 1900, 2100),
+          end_year: int_within(education[:end_year], 1900, 2100)
+        )
+      end
+    end
+
+    def sanitize_certifications(parsed)
+      parsed[:certifications] = Array(parsed[:certifications]).filter_map do |certification|
+        next if certification[:name].blank?
+
+        certification.merge(url: normalize_url(certification[:url]))
+      end
+    end
+
+    def sanitize_projects(parsed)
+      parsed[:projects] = Array(parsed[:projects]).filter_map do |project|
+        next if project[:title].blank?
+
+        project.merge(url: normalize_url(project[:url]))
+      end
+    end
+
+    # Repairs a URL the model returned without a scheme (e.g. "linkedin.com/in/x")
+    # so it passes the models' http(s):// format validation. Blank -> nil.
+    def normalize_url(value)
+      url = value.to_s.strip
+      return if url.blank?
+      return url if url.match?(URL_SCHEME)
+
+      "https://#{url.delete_prefix('//')}"
+    end
+
+    # Returns the integer if it falls within [min, max], else nil — so an
+    # out-of-range value never trips a numericality validation.
+    def int_within(value, min, max)
+      int = Integer(value, exception: false)
+      return if int.nil? || int < min || int > max
+
+      int
     end
 
     def extract_text(response)
