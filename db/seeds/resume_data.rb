@@ -47,7 +47,10 @@ module Seeds
       { slug: 'meridian', name: 'Meridian', description: 'Two-column layout with a bold dark sidebar carrying the photo, achievements, education, skills and courses beside a light main column' },
       { slug: 'vertex', name: 'Vertex', description: 'Single-column layout with heavy section rules, a blue accent, a two-column achievements grid, bar-meter languages and comma-separated core competencies' },
       { slug: 'aspect', name: 'Aspect', description: 'Two-column layout with a light sidebar carrying the photo, achievements, education, skills, courses and interests beside the main experience column' },
-      { slug: 'timeline', name: 'Timeline', description: 'Single-column layout with a vertical timeline rail for experience and education, underlined skill chips and progress-bar languages' }
+      { slug: 'timeline', name: 'Timeline', description: 'Single-column layout with a vertical timeline rail for experience and education, underlined skill chips and progress-bar languages' },
+      { slug: 'adwa', name: 'Adwa Sentinel', description: 'Two-column layout with a deep-navy sidebar carrying the photo, summary, gradient skill rows, dot-meter languages and awards beside a cream main column with gold pill headings, diamond bullets and a vertical timeline rail' },
+      { slug: 'yegna', name: 'Yegna Editorial', description: 'Magazine-styled two-column layout with a deep-maroon serif sidebar carrying the photo, summary, comma-separated skills, languages and certifications beside a cream main column with ruled headings and dash bullets' },
+      { slug: 'gondar', name: 'Gondar Crest', description: 'Royal-blue sidebar (no photo) with gold accents and dotted-underline headings carrying summary, two-column skill and language grids and certifications beside a white main column with a geometric crest motif' }
     ].freeze
 
     def ensure_templates!

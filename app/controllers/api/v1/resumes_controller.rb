@@ -163,7 +163,20 @@ module API
         ).to_h.deep_symbolize_keys
 
         merge_section_styles!(permitted)
+        merge_design!(permitted)
         permitted
+      end
+
+      # design is a nested cosmetic object (typography, photo, section styling,
+      # etc.) whose shape includes a dynamically-keyed icon-override hash, so
+      # strong params cannot enumerate it. Stored as jsonb, read raw + symbolized.
+      def merge_design!(permitted)
+        raw = params.dig(:resume, :layout_config, :design)
+        return if raw.blank?
+
+        design = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+        permitted[:layout_config] ||= {}
+        permitted[:layout_config][:design] = design.deep_symbolize_keys
       end
 
       # section_styles is a hash keyed by dynamic section ids, so strong params
