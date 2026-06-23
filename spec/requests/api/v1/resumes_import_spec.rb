@@ -35,8 +35,8 @@ describe 'API::V1::Resumes import' do
   after { Prosopite.resume }
 
   def stub_parser(result: parsed)
-    allow(Resumes::ResumeParser).to receive(:new)
-      .and_return(instance_double(Resumes::ResumeParser, call: result))
+    allow(Resumes::ResumeParser).to receive(:build)
+      .and_return(instance_double(Resumes::GeminiResumeParser, call: result))
   end
 
   describe 'POST /api/v1/resumes/import' do
@@ -105,8 +105,8 @@ describe 'API::V1::Resumes import' do
     end
 
     it 'returns a friendly error when parsing fails' do
-      allow(Resumes::ResumeParser).to receive(:new)
-        .and_return(instance_double(Resumes::ResumeParser).tap do |parser|
+      allow(Resumes::ResumeParser).to receive(:build)
+        .and_return(instance_double(Resumes::GeminiResumeParser).tap do |parser|
           allow(parser).to receive(:call).and_raise(Resumes::ImportError, 'Could not read the resume contents.')
         end)
 

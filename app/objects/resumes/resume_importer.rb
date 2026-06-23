@@ -2,9 +2,10 @@
 
 module Resumes
   # Onboarding "upload your resume" pipeline: validate the upload, normalize it
-  # to a Claude-readable document (converting DOC/DOCX to PDF), parse it into the
-  # draft-params shape, canonicalize lookup-backed values, then persist a new
-  # resume via the existing Resumes::DraftUpdater.
+  # to a model-readable document (converting DOC/DOCX to PDF), parse it into the
+  # draft-params shape via the configured provider (Resumes::ResumeParser), then
+  # canonicalize lookup-backed values and persist a new resume via the existing
+  # Resumes::DraftUpdater.
   #
   # Parsing/conversion (slow, network + shell) run OUTSIDE the DB transaction;
   # only the persistence step is transactional.
@@ -34,7 +35,7 @@ module Resumes
     def call
       validate!
       data, media_type = prepare_document
-      parsed = ResumeParser.new(data: data, media_type: media_type).call
+      parsed = ResumeParser.build(data: data, media_type: media_type).call
       persist(parsed)
     end
 
@@ -48,7 +49,7 @@ module Resumes
       raise ImportError, 'Unsupported file type. Upload a PDF, Word document, or image.'
     end
 
-    # @return [Array(String, String)] (document bytes, Anthropic media_type)
+    # @return [Array(String, String)] (document bytes, IANA media_type)
     def prepare_document
       bytes = @file.read
       if word_document?

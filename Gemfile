@@ -9,7 +9,8 @@ gem 'rails', '~> 8.1.3'
 # Gems
 gem 'activeadmin', '~> 3.5'
 gem 'active_storage_base64', '~> 3.0.1'
-# Official Anthropic SDK — powers AI resume parsing (Resumes::ResumeParser).
+# Official Anthropic SDK — one of the AI resume-parsing providers
+# (Resumes::AnthropicResumeParser), selected via RESUME_PARSER_PROVIDER.
 gem 'anthropic', '~> 1.0'
 gem 'aws-sdk-s3', '~> 1.223', require: false
 gem 'bootsnap', '~> 1.24'
@@ -23,6 +24,9 @@ gem 'faraday-retry', '~> 2.4'
 gem 'flipper', '~> 1.4.2'
 gem 'flipper-active_record', '~> 1.4.2'
 gem 'flipper-ui', '~> 1.4.2'
+# Google Gemini client — the cheap resume-parsing provider
+# (Resumes::GeminiResumeParser, gemini-2.5-flash-lite), selected via RESUME_PARSER_PROVIDER.
+gem 'gemini-ai', '~> 4.2'
 gem 'googleauth', '~> 1.16'
 gem 'good_job', '~> 4.18.2'
 gem 'jbuilder', '~> 2.15'

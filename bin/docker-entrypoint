@@ -20,6 +20,10 @@ else
   shift
 fi
 
+ensure_bundle() {
+  bundle check || bundle install -j 4
+}
+
 cleanup_stale_server_pid() {
   local pidfile="tmp/pids/server.pid"
 
@@ -37,6 +41,7 @@ cleanup_stale_server_pid() {
 
 # If running the rails server then create or migrate existing database
 if ([ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]) || [ "${1}" == "./bin/dev" ] || [[ $@ == *"bundle exec puma"* ]]; then
+  ensure_bundle
   cleanup_stale_server_pid
   ./bin/rails db:prepare
 fi

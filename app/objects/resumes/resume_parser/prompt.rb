@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module Resumes
-  class ResumeParser
-    # Prompt text for the resume parser, kept out of the service class so the
-    # logic stays readable.
+  module ResumeParser
+    # Prompt text shared by every resume-parsing provider, kept out of the service
+    # classes so the logic stays readable.
     #
     # SYSTEM holds the stable instructions + schema, so it forms a cacheable
     # prefix (caching is a prefix match: tools -> system -> messages); the
