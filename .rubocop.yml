@@ -53,6 +53,10 @@ Metrics/AbcSize:
     - db/**/*
     # Job scrapers are declarative attribute-mapping / HTTP glue.
     - app/services/jobs/**/*
+    # Alert matching/scoring and Telegram API/formatting are the same kind of
+    # declarative glue (criteria scoring, message rendering, Bot API calls).
+    - app/services/job_alerts/**/*
+    - app/services/telegram/**/*
 
 Metrics/BlockLength:
   Exclude:
@@ -68,6 +72,10 @@ Metrics/ClassLength:
 
 Metrics/CyclomaticComplexity:
   Max: 6
+  Exclude:
+    # See Metrics/AbcSize — declarative matching/formatting glue.
+    - app/services/job_alerts/**/*
+    - app/services/telegram/**/*
 
 Metrics/MethodLength:
   Max: 24

@@ -18,6 +18,26 @@ Rails.application.configure do
       cron: ENV.fetch('SCRAPE_JOBS_CRON', '0 2 * * *'),
       class: 'ScrapeJobsJob',
       description: 'Aggregate job postings from Ethiopian job boards daily'
+    },
+    scan_job_alerts: {
+      # Hourly safety net; ScrapeJobsJob also fans out to this after each run.
+      cron: ENV.fetch('SCAN_JOB_ALERTS_CRON', '15 * * * *'),
+      class: 'JobAlerts::ScanJob',
+      description: 'Match newly-scraped jobs against active job alerts'
+    },
+    job_alerts_daily_digest: {
+      # Daily at 08:00. Override with JOB_ALERTS_DAILY_DIGEST_CRON.
+      cron: ENV.fetch('JOB_ALERTS_DAILY_DIGEST_CRON', '0 8 * * *'),
+      class: 'JobAlerts::DigestJob',
+      args: ['daily'],
+      description: 'Send daily job-alert digests over Telegram'
+    },
+    job_alerts_weekly_digest: {
+      # Mondays at 08:00. Override with JOB_ALERTS_WEEKLY_DIGEST_CRON.
+      cron: ENV.fetch('JOB_ALERTS_WEEKLY_DIGEST_CRON', '0 8 * * 1'),
+      class: 'JobAlerts::DigestJob',
+      args: ['weekly'],
+      description: 'Send weekly job-alert digests over Telegram'
     }
   }
 end

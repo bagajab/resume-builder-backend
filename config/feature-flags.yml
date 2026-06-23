@@ -12,4 +12,9 @@ impersonation_tool:
   description: "This is a feature flag to enable/disable the impersonation tool"
   owner: "@github/rootstrap/ruby"
   removal_ticket: "Link to the feature flag removal ticket"
+
+job_alerts:
+  description: "Enable the Job Alerts feature (alert CRUD, matching, and Telegram delivery)"
+  owner: "@github/rootstrap/ruby"
+  removal_ticket: "Link to the feature flag removal ticket"
   

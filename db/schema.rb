@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_20_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_23_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -303,6 +303,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_000001) do
     t.index ["value"], name: "index_interests_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
+  create_table "job_alert_notifications", force: :cascade do |t|
+    t.string "channel", default: "telegram", null: false
+    t.datetime "created_at", null: false
+    t.text "error"
+    t.bigint "job_alert_id", null: false
+    t.bigint "job_id", null: false
+    t.float "match_score"
+    t.datetime "sent_at"
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["job_alert_id", "job_id"], name: "index_job_alert_notifications_on_job_alert_id_and_job_id", unique: true
+    t.index ["job_alert_id"], name: "index_job_alert_notifications_on_job_alert_id"
+    t.index ["job_id"], name: "index_job_alert_notifications_on_job_id"
+    t.index ["user_id", "status"], name: "index_job_alert_notifications_on_user_id_and_status"
+    t.index ["user_id"], name: "index_job_alert_notifications_on_user_id"
+  end
+
+  create_table "job_alerts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "employment_types", default: [], null: false, array: true
+    t.string "experience_levels", default: [], null: false, array: true
+    t.integer "frequency", default: 0, null: false
+    t.string "keywords", default: [], null: false, array: true
+    t.datetime "last_run_at"
+    t.string "locations", default: [], null: false, array: true
+    t.string "name", null: false
+    t.string "remote_preference", default: "any", null: false
+    t.string "salary_currency"
+    t.integer "salary_max"
+    t.integer "salary_min"
+    t.integer "status", default: 0, null: false
+    t.string "titles", default: [], null: false, array: true
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["keywords"], name: "index_job_alerts_on_keywords", using: :gin
+    t.index ["status"], name: "index_job_alerts_on_status"
+    t.index ["titles"], name: "index_job_alerts_on_titles", using: :gin
+    t.index ["user_id"], name: "index_job_alerts_on_user_id"
+  end
+
   create_table "job_titles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "normalized_value", null: false
@@ -496,6 +537,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_000001) do
     t.index ["value"], name: "index_technologies_on_value_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
+  create_table "telegram_connections", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "link_token"
+    t.datetime "link_token_expires_at"
+    t.datetime "linked_at"
+    t.string "phone_number"
+    t.boolean "phone_verified", default: false, null: false
+    t.integer "status", default: 0, null: false
+    t.bigint "telegram_chat_id"
+    t.bigint "telegram_user_id"
+    t.string "telegram_username"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["link_token"], name: "index_telegram_connections_on_link_token", unique: true
+    t.index ["telegram_chat_id"], name: "index_telegram_connections_on_telegram_chat_id"
+    t.index ["user_id"], name: "index_telegram_connections_on_user_id", unique: true
+  end
+
   create_table "templates", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -540,6 +599,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_000001) do
   add_foreign_key "fields_of_study", "users", column: "submitted_by_user_id"
   add_foreign_key "industries", "users", column: "submitted_by_user_id"
   add_foreign_key "interests", "users", column: "submitted_by_user_id"
+  add_foreign_key "job_alert_notifications", "job_alerts"
+  add_foreign_key "job_alert_notifications", "jobs"
+  add_foreign_key "job_alert_notifications", "users"
+  add_foreign_key "job_alerts", "users"
   add_foreign_key "job_titles", "users", column: "submitted_by_user_id"
   add_foreign_key "language_proficiencies", "users", column: "submitted_by_user_id"
   add_foreign_key "languages", "users", column: "submitted_by_user_id"
@@ -551,4 +614,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_000001) do
   add_foreign_key "skill_options", "users", column: "submitted_by_user_id"
   add_foreign_key "skills", "resumes"
   add_foreign_key "technologies", "users", column: "submitted_by_user_id"
+  add_foreign_key "telegram_connections", "users"
 end

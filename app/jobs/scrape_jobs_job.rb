@@ -8,5 +8,7 @@ class ScrapeJobsJob < ApplicationJob
 
   def perform
     Jobs::ScraperService.call
+    # Fan out to alert matching as soon as fresh jobs land.
+    JobAlerts::ScanJob.perform_later
   end
 end

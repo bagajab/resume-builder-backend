@@ -32,6 +32,23 @@ Rails.application.routes.draw do
         get :filters, on: :collection
       end
 
+      resources :job_alerts, only: %i[index create update destroy] do
+        member do
+          post :pause
+          post :resume
+          get :notifications
+        end
+        collection do
+          post :preview
+        end
+      end
+
+      namespace :telegram do
+        resource :connection, only: %i[show create destroy]
+        # Public bot webhook (auth via secret-token header, not Devise).
+        post 'webhook', to: 'webhooks#create'
+      end
+
       get 'public/profiles/:slug', to: 'public_profiles#show', as: :public_profile
       get 'public/profiles/:slug/export_pdf', to: 'public_profiles#export_pdf', as: :public_profile_export_pdf
 

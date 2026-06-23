@@ -90,6 +90,9 @@ class User < ApplicationRecord
   end
 
   has_many :resumes, dependent: :destroy
+  has_many :job_alerts, dependent: :destroy
+  has_many :job_alert_notifications, dependent: :destroy
+  has_one :telegram_connection, dependent: :destroy
 
   private
 

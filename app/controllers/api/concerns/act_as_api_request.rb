@@ -27,8 +27,11 @@ module API
 
       private
 
+      # Only enforce the JSON content-type when the request actually carries a body.
+      # Body-less writes (e.g. POST /pause, POST /telegram/connection) have nothing
+      # to misinterpret and must not be rejected.
       def request_with_body?
-        request.post? || request.put? || request.patch?
+        (request.post? || request.put? || request.patch?) && request.content_length.to_i.positive?
       end
     end
   end
