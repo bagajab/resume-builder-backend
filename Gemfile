@@ -12,7 +12,7 @@ gem 'active_storage_base64', '~> 3.0.1'
 # Official Anthropic SDK — one of the AI resume-parsing providers
 # (Resumes::AnthropicResumeParser), selected via RESUME_PARSER_PROVIDER.
 gem 'anthropic', '~> 1.0'
-gem 'aws-sdk-s3', '~> 1.223', require: false
+gem 'aws-sdk-s3', '~> 1.226', require: false
 gem 'bootsnap', '~> 1.24'
 gem 'cssbundling-rails', '~> 1.4'
 gem 'devise', '~> 4.9'
@@ -27,8 +27,8 @@ gem 'flipper-ui', '~> 1.4.2'
 # Google Gemini client — the cheap resume-parsing provider
 # (Resumes::GeminiResumeParser, gemini-2.5-flash-lite), selected via RESUME_PARSER_PROVIDER.
 gem 'gemini-ai', '~> 4.2'
-gem 'googleauth', '~> 1.16'
-gem 'good_job', '~> 4.18.2'
+gem 'googleauth', '~> 1.17'
+gem 'good_job', '~> 4.19.0'
 gem 'jbuilder', '~> 2.15'
 gem 'jsbundling-rails', '~> 1.3'
 gem 'lograge', '~> 0.14'
@@ -72,13 +72,13 @@ group :development do
   gem 'listen', '~> 3.10'
   gem 'rails_best_practices', '~> 1.23'
   gem 'reek', '~> 6.5'
-  gem 'rubocop', '~> 1.86', require: false
-  gem 'rubocop-capybara', '~> 2.23'
+  gem 'rubocop', '~> 1.88', require: false
+  gem 'rubocop-capybara', '~> 3.0'
   gem 'rubocop-factory_bot', '~> 2.28', require: false
   gem 'rubocop-performance', '~> 1.26', require: false
   gem 'rubocop-rails', '~> 2.35', require: false
   gem 'rubocop-rake', '~> 0.7.1', require: false
-  gem 'rubocop-rspec', '~> 3.9', require: false
+  gem 'rubocop-rspec', '~> 3.10', require: false
   gem 'rubocop-rspec_rails', '~> 2.32.0', require: false
 end
 
@@ -89,10 +89,10 @@ group :test do
   gem 'parallel_tests', '~> 5.7'
   gem 'pg_query', '~> 6.2.2'
   gem 'prosopite', '~> 2.2.0'
-  gem 'rspec-openapi', '~> 0.26'
+  gem 'rspec-openapi', '~> 0.28'
   gem 'rspec-retry', github: 'rootstrap/rspec-retry', branch: 'add-intermittent-callback'
-  gem 'selenium-webdriver', '~> 4.44.0'
-  gem 'shoulda-matchers', '~> 7.0'
+  gem 'selenium-webdriver', '~> 4.45.0'
+  gem 'shoulda-matchers', '~> 8.0'
   gem 'simplecov', '~> 0.22.0', require: false
   gem 'webmock', '~> 3.26'
 end
