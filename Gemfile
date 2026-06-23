@@ -15,6 +15,9 @@ gem 'cssbundling-rails', '~> 1.4'
 gem 'devise', '~> 4.9'
 gem 'devise_token_auth', '~> 1.2', '>= 1.2.6'
 gem 'draper', '~> 4.0'
+# Retry middleware for the job scrapers' Faraday client (app/services/jobs).
+# Must stay in the default group: the scraper code is eager-loaded in production.
+gem 'faraday-retry', '~> 2.4'
 gem 'flipper', '~> 1.4.2'
 gem 'flipper-active_record', '~> 1.4.2'
 gem 'flipper-ui', '~> 1.4.2'
@@ -75,7 +78,6 @@ end
 
 group :test do
   gem 'capybara', '~> 3.40'
-  gem 'faraday-retry', '~> 2.4'
   gem 'knapsack', '~> 4.0'
   gem 'octokit', '~> 10.0'
   gem 'parallel_tests', '~> 5.7'
