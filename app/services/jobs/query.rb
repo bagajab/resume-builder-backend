@@ -19,7 +19,7 @@ module Jobs
     end
 
     def call
-      relation = sorted(keyword(attributes(base)))
+      relation = sorted(keyword(facets(attributes(base))))
       meta = paginate(relation)
       Page.new(records: relation.offset(meta[:offset]).limit(meta[:per]), meta:)
     end
@@ -37,6 +37,14 @@ module Jobs
       relation = relation.where(employment_type: params[:employment_type]) if params[:employment_type].present?
       relation = relation.where(category: params[:category]) if params[:category].present?
       relation = relation.remote if params[:remote] == 'true'
+      relation
+    end
+
+    # Enrichment-derived facets, split out of #attributes to keep each method's
+    # branching modest.
+    def facets(relation)
+      relation = relation.with_seniority(params[:seniority]) if params[:seniority].present?
+      relation = relation.with_skills(skills_param) if skills_param.present?
       relation
     end
 
@@ -66,6 +74,14 @@ module Jobs
 
     def bounded(key, default, max)
       (params[key].presence || default).to_i.clamp(1, max)
+    end
+
+    # Accepts a comma-separated string or an array; matches jobs having ANY skill.
+    def skills_param
+      @skills_param ||= Array(params[:skills])
+                        .flat_map { |value| value.to_s.split(',') }
+                        .map(&:strip)
+                        .compact_blank
     end
   end
 end

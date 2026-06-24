@@ -22,7 +22,10 @@ module API
         @filters = {
           sources: Job::SOURCES,
           employment_types: distinct_values(base, :employment_type),
+          # Canonical categories present in the data, kept stable by enrichment.
           categories: distinct_values(base, :category),
+          # Only seniorities present, ordered along the ladder (not alphabetically).
+          seniorities: Job::SENIORITY_LEVELS & distinct_values(base, :seniority),
           locations: distinct_values(base, :location)
         }
       end

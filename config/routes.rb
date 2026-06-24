@@ -47,6 +47,10 @@ Rails.application.routes.draw do
         resource :connection, only: %i[show create destroy]
         # Public bot webhook (auth via secret-token header, not Devise).
         post 'webhook', to: 'webhooks#create'
+        # Telegram Mini App (auth via signed initData + single-use refine token,
+        # not Devise). Loads/updates the one alert behind a disliked match.
+        get   'mini_app/job_alert', to: 'mini_app#show'
+        patch 'mini_app/job_alert', to: 'mini_app#update'
       end
 
       get 'public/profiles/:slug', to: 'public_profiles#show', as: :public_profile

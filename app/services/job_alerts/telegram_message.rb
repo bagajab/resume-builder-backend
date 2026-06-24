@@ -10,9 +10,16 @@ module JobAlerts
     DIVIDER = '━━━━━━━━━━━━━━━'
     SITE_LOCALE = 'en'
     CLOSING_SOON_DAYS = 7
+    # A valid public DNS hostname: dot-separated labels + a real TLD, only letters/
+    # digits/hyphens. Rejects localhost, bare IPs, and malformed scraped hosts like
+    # "ee,ifrc.org" (a comma) that URI.parse accepts but Telegram rejects with
+    # BUTTON_URL_INVALID — which would otherwise fail the whole message.
+    PUBLIC_HOST = /\A(?=.{1,253}\z)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}\z/i
 
     def self.single(job) = new.single(job)
-    def self.single_buttons(job) = new.single_buttons(job)
+    def self.single_buttons(notification) = new.single_buttons(notification)
+    def self.url_buttons(job) = new.url_buttons(job)
+    def self.refine_buttons(job, web_app_url) = new.refine_buttons(job, web_app_url)
     def self.digest(jobs, frequency:) = new.digest(jobs, frequency:)
 
     # Body for a single match. The bold text detail link always works (incl.
@@ -27,14 +34,23 @@ module JobAlerts
       ].compact.join("\n\n")
     end
 
-    # Inline keyboard (URL buttons) for a single match — only for publicly-valid
-    # URLs. Telegram rejects button URLs that are localhost/IP or non-http (mailto:),
-    # so on those we fall back to the in-body text links and return nil here.
-    def single_buttons(job)
-      rows = []
-      rows << [{ text: '🔎 View full details →', url: site_url(job) }] if buttonable?(site_url(job))
-      rows << [{ text: '➡️ Apply now', url: apply_link(job) }] if buttonable?(apply_link(job))
-      rows.empty? ? nil : { inline_keyboard: rows }
+    # Inline keyboard for a single match: any publicly-valid URL buttons (Telegram
+    # rejects localhost/IP/non-http URLs) PLUS a 👍/👎 feedback row tied to this
+    # specific notification via callback_data. The feedback row is always present.
+    def single_buttons(notification)
+      { inline_keyboard: url_rows(notification.job) + [feedback_row(notification)] }
+    end
+
+    # Keyboard after a 👍: URL buttons only (feedback row removed so it can't be
+    # voted again). May be an empty keyboard (clears buttons) on localhost.
+    def url_buttons(job)
+      { inline_keyboard: url_rows(job) }
+    end
+
+    # Keyboard after a 👎: URL buttons plus a Web App button that opens the refine
+    # Mini App at the signed URL.
+    def refine_buttons(job, web_app_url)
+      { inline_keyboard: url_rows(job) + [[refine_button(web_app_url)]] }
     end
 
     def digest(jobs, frequency:)
@@ -94,12 +110,33 @@ module JobAlerts
       ].join("\n")
     end
 
+    # URL-button rows (View / Apply), only for publicly-valid URLs.
+    def url_rows(job)
+      rows = []
+      rows << [{ text: I18n.t('telegram.buttons.view'), url: site_url(job) }] if buttonable?(site_url(job))
+      rows << [{ text: I18n.t('telegram.buttons.apply'), url: apply_link(job) }] if buttonable?(apply_link(job))
+      rows
+    end
+
+    def feedback_row(notification)
+      [
+        { text: I18n.t('telegram.feedback.good'), callback_data: "fb:up:#{notification.id}" },
+        { text: I18n.t('telegram.feedback.bad'), callback_data: "fb:down:#{notification.id}" }
+      ]
+    end
+
+    # Web App button opens the Mini App in Telegram's WebView; requires an https
+    # URL (configured in BotFather). Falls back to a plain URL button otherwise.
+    def refine_button(url)
+      label = I18n.t('telegram.feedback.refine')
+      buttonable?(url) ? { text: label, web_app: { url: } } : { text: label, url: }
+    end
+
     # Telegram only accepts public http(s) URLs in inline-keyboard buttons (no
-    # localhost/IP, no mailto:/tel:).
+    # localhost/IP, no mailto:/tel:, no malformed hosts).
     def buttonable?(url)
       uri = URI.parse(url)
-      uri.is_a?(URI::HTTP) && uri.host.to_s.include?('.') &&
-        !uri.host.start_with?('localhost') && uri.host != '127.0.0.1'
+      uri.is_a?(URI::HTTP) && uri.host.to_s.match?(PUBLIC_HOST)
     rescue URI::InvalidURIError
       false
     end

@@ -53,6 +53,18 @@ module Jobs
         Nokogiri::HTML(client.get(url, headers:))
       end
 
+      # True when we already hold a fresh, complete enrichment for this URL, so the
+      # (paid) detail fetch + Gemini call can be skipped. Scrapers that gate detail
+      # fetches on this should emit `refresh_marker(url)` for skipped jobs so the
+      # job is still counted as seen this run (and not deactivated).
+      def skip_detail?(url)
+        Jobs::Enricher.fresh?(url)
+      end
+
+      def refresh_marker(url)
+        { source:, url:, refresh_only: true }
+      end
+
       # Extracts and parses the Next.js __NEXT_DATA__ payload from a document.
       def next_data(document)
         node = document.at_css('script#__NEXT_DATA__')

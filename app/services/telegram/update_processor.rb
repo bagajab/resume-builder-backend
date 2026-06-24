@@ -25,6 +25,9 @@ module Telegram
       linked: '✅ Your Telegram is connected! You will now receive matching job alerts here.'
     }.freeze
 
+    # Feedback callback_data shape: "fb:up:<notification_id>" / "fb:down:<id>".
+    CALLBACK_PATTERN = /\Afb:(up|down):(\d+)\z/
+
     def self.call(...) = new(...).call
 
     def initialize(update, client: Telegram::Client.new, logger: Rails.logger)
@@ -34,13 +37,10 @@ module Telegram
     end
 
     def call
-      message = @update[:message]
-      return if message.blank?
-
-      if (contact = message[:contact]).present?
-        handle_contact(message, contact)
-      elsif (text = message[:text]).to_s.start_with?('/start')
-        handle_start(message, text)
+      if (callback = @update[:callback_query]).present?
+        handle_callback_query(callback)
+      elsif (message = @update[:message]).present?
+        handle_message(message)
       end
     rescue StandardError => error
       @logger.error("[Telegram::UpdateProcessor] #{error.class}: #{error.message}")
@@ -48,6 +48,89 @@ module Telegram
     end
 
     private
+
+    def handle_message(message)
+      if (contact = message[:contact]).present?
+        handle_contact(message, contact)
+      elsif (text = message[:text]).to_s.start_with?('/start')
+        handle_start(message, text)
+      end
+    end
+
+    # ---- callback_query (👍 / 👎 feedback) ----------------------------------
+
+    def handle_callback_query(callback)
+      action, notification_id = parse_feedback(callback[:data])
+      return if action.nil?
+
+      callback_id = callback[:id]
+      from_id = callback.dig(:from, :id)
+      notification = JobAlertNotification.find_by(id: notification_id)
+
+      # A user may only act on their OWN notifications — the tapping Telegram user
+      # (authenticated by Telegram) must own the alert behind this notification.
+      unless owned_by?(notification, from_id)
+        @logger.warn("[Telegram::UpdateProcessor] rejected callback from #{from_id} on notification #{notification_id}")
+        return answer(callback_id, :not_authorized, alert: true)
+      end
+      return answer(callback_id, :already) if notification.feedback_given?
+
+      record_message_id(notification, callback)
+      action == 'up' ? handle_positive(notification, callback_id) : handle_negative(notification, callback_id, from_id)
+    end
+
+    def parse_feedback(data)
+      match = data.to_s.match(CALLBACK_PATTERN)
+      match ? [match[1], match[2].to_i] : [nil, nil]
+    end
+
+    def owned_by?(notification, from_id)
+      return false if notification.nil? || from_id.blank?
+
+      connection = TelegramConnection.linked.find_by(user_id: notification.user_id)
+      connection&.telegram_user_id.present? && connection.telegram_user_id == from_id.to_i
+    end
+
+    def record_message_id(notification, callback)
+      message_id = callback.dig(:message, :message_id)
+      return if message_id.blank?
+
+      notification.update_columns(telegram_message_id: message_id, updated_at: Time.current) # rubocop:disable Rails/SkipsModelValidations
+    end
+
+    def handle_positive(notification, callback_id)
+      notification.record_feedback!('positive')
+      answer(callback_id, :thanks)
+      # Drop the feedback row so it can't be voted again.
+      edit_keyboard(notification, JobAlerts::TelegramMessage.url_buttons(notification.job))
+    end
+
+    def handle_negative(notification, callback_id, from_id)
+      notification.record_feedback!('negative')
+      token = Telegram::FeedbackToken.generate(notification, telegram_user_id: from_id)
+      answer(callback_id, :refine_prompt)
+      url = Telegram::MiniApp.refine_url(token)
+      edit_keyboard(notification, JobAlerts::TelegramMessage.refine_buttons(notification.job, url))
+    end
+
+    def edit_keyboard(notification, reply_markup)
+      return if notification.telegram_message_id.blank?
+
+      connection = TelegramConnection.linked.find_by(user_id: notification.user_id)
+      return if connection&.telegram_chat_id.blank?
+
+      @client.edit_message_reply_markup(
+        chat_id: connection.telegram_chat_id, message_id: notification.telegram_message_id, reply_markup:
+      )
+    rescue Telegram::Client::Error => error
+      @logger.warn("[Telegram::UpdateProcessor] keyboard edit failed: #{error.message}")
+    end
+
+    def answer(callback_id, key, alert: false)
+      @client.answer_callback_query(
+        callback_query_id: callback_id, text: I18n.t("telegram.feedback.#{key}"), show_alert: alert
+      )
+    end
 
     def handle_start(message, text)
       chat_id = message.dig(:chat, :id)

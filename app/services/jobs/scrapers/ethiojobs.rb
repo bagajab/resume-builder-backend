@@ -32,7 +32,13 @@ module Jobs
         slugs = listing_slugs(document)
         return [] if slugs.empty?
 
-        slugs.filter_map { |slug| safe_parse(slug) { scrape_detail(slug) } }
+        slugs.filter_map do |slug|
+          url = detail_url(slug)
+          # Skip the per-slug detail fetch when this job is already enriched + fresh.
+          next refresh_marker(url) if skip_detail?(url)
+
+          safe_parse(slug) { scrape_detail(slug) }
+        end
       end
 
       def listing_slugs(document)

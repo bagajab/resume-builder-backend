@@ -23,16 +23,21 @@ module JobAlerts
       chat_id = linked_chat_id(notification)
       return if chat_id.nil?
 
-      job = notification.job
-      Telegram::Client.new.send_message(
-        chat_id:,
-        text: JobAlerts::TelegramMessage.single(job),
-        reply_markup: JobAlerts::TelegramMessage.single_buttons(job)
-      )
-      notification.update!(status: :sent, sent_at: Time.current, error: nil)
+      deliver(notification, chat_id)
     end
 
     private
+
+    def deliver(notification, chat_id)
+      result = Telegram::Client.new.send_message(
+        chat_id:,
+        text: JobAlerts::TelegramMessage.single(notification.job),
+        reply_markup: JobAlerts::TelegramMessage.single_buttons(notification)
+      )
+      # Keep the delivered message id so a later 👍/👎 tap can edit its keyboard.
+      message_id = result.is_a?(Hash) ? result['message_id'] : nil
+      notification.update!(status: :sent, sent_at: Time.current, error: nil, telegram_message_id: message_id)
+    end
 
     # Returns the user's Telegram chat id, or nil after marking the notification
     # skipped when there's nowhere to deliver it.

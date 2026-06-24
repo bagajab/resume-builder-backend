@@ -10,3 +10,15 @@ en:
       invalid_content_type: Invalid content type header
       missing_param: A required param is missing
       not_found: Couldn't find the record
+  telegram:
+    buttons:
+      view: "🔎 View full details →"
+      apply: "➡️ Apply now"
+    feedback:
+      good: "👍 Good match"
+      bad: "👎 Not for me"
+      refine: "✏️ Refine this alert"
+      thanks: Thanks for the feedback! 🙌
+      refine_prompt: Got it — tap “Refine this alert” to see better matches.
+      already: You've already responded to this match.
+      not_authorized: This match isn't linked to your account.

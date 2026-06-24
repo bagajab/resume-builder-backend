@@ -8,10 +8,12 @@ module Jobs
   # listed is marked inactive. A source that fails (or returns nothing) never
   # deactivates that source's existing jobs.
   class ScraperService
+    # Ethiojobs only for now. EthiopianReporter and HahuJobs are temporarily
+    # disabled — re-add them here to bring them back.
     SCRAPERS = [
-      Scrapers::Ethiojobs,
-      Scrapers::EthiopianReporter,
-      Scrapers::HahuJobs
+      Scrapers::Ethiojobs
+      # Scrapers::EthiopianReporter,
+      # Scrapers::HahuJobs
     ].freeze
 
     Result = Data.define(:source, :upserted, :created, :deactivated, :error) do
@@ -28,6 +30,13 @@ module Jobs
 
     # @return [Array<Result>] one summary per source
     def call
+      # Every scraped job is enriched with Gemini; without a key there's no point
+      # paying the scrape cost, so skip the run entirely.
+      unless Jobs::Enricher.enabled?
+        logger.warn('[Jobs::ScraperService] skipped: Gemini enrichment is not configured (GEMINI_API_KEY)')
+        return []
+      end
+
       SCRAPERS.map { |scraper_class| run_scraper(scraper_class) }.tap { |results| log_summary(results) }
     end
 
@@ -52,13 +61,29 @@ module Jobs
       seen_urls = []
 
       Array(records).each do |attrs|
-        next if attrs.blank? || attrs[:url].blank? || attrs[:title].blank?
+        next if attrs.blank? || attrs[:url].blank?
 
-        created += 1 if persist_record(attrs)
+        outcome = ingest(attrs)
+        next if outcome == :skip
+
+        created += 1 if outcome == :created
         seen_urls << attrs[:url]
       end
 
       [created, seen_urls]
+    end
+
+    # @return [Symbol] :created / :updated / :refreshed, or :skip when ignored
+    def ingest(attrs)
+      # A scraper that skipped a detail fetch (already enriched + fresh) emits a
+      # refresh-only marker: keep the job alive and seen, but don't re-process it.
+      if attrs[:refresh_only]
+        refresh_seen(attrs[:url])
+        return :refreshed
+      end
+      return :skip if attrs[:title].blank?
+
+      persist_record(attrs) ? :created : :updated
     end
 
     # @return [Boolean] true when a new record was created
@@ -66,13 +91,32 @@ module Jobs
       now = Time.current
       job = Job.find_or_initialize_by(url: attrs[:url])
       created = job.new_record?
+      hash = Jobs::Enricher.content_hash(attrs)
+      content_changed = job.content_hash != hash
       job.first_seen_at ||= now
-      job.assign_attributes(attrs.merge(active: true, last_seen_at: now))
+      job.assign_attributes(attrs.merge(active: true, last_seen_at: now, content_hash: hash))
+      # A changed source invalidates a prior enrichment; flag it for a refresh so
+      # the `unless enriched?` guard below re-enqueues it.
+      job.enrichment_status = 'pending' if content_changed && job.enrichment_status == 'enriched'
       job.save!
+      enqueue_enrichment(job) unless job.enriched?
       created
     rescue ActiveRecord::RecordInvalid => error
       logger.warn("[Jobs::ScraperService] skipped #{attrs[:url]}: #{error.message}")
       false
+    end
+
+    # Refreshes lifecycle bookkeeping for a job we deliberately didn't re-fetch.
+    def refresh_seen(url)
+      Job.where(url:)
+         # Touch-only; the record is unchanged so validations add nothing.
+         .update_all(active: true, last_seen_at: Time.current, updated_at: Time.current) # rubocop:disable Rails/SkipsModelValidations
+    end
+
+    def enqueue_enrichment(job)
+      return unless Jobs::Enricher.enabled?
+
+      Jobs::EnrichJob.perform_later(job.id)
     end
 
     def deactivate_missing(source, seen_urls)

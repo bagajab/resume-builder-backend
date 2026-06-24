@@ -16,6 +16,8 @@ RSpec.describe Jobs::ScraperService do
   end
 
   before do
+    # Scraping is gated on Gemini enrichment being configured; enable it by default.
+    allow(Jobs::Enricher).to receive(:enabled?).and_return(true)
     # Stub every source so no network is touched; only ethiojobs returns data.
     stub_scraper(Jobs::Scrapers::Ethiojobs, [record])
     stub_scraper(Jobs::Scrapers::EthiopianReporter, [])
@@ -69,6 +71,62 @@ RSpec.describe Jobs::ScraperService do
     ethiojobs = results.find { |r| r.source == 'ethiojobs' }
     expect(ethiojobs.created).to eq(1)
     expect(ethiojobs.upserted).to eq(1)
-    expect(results.map(&:source)).to contain_exactly('ethiojobs', 'ethiopian_reporter', 'hahu_jobs')
+    # Ethiojobs only for now (EthiopianReporter / HahuJobs are disabled).
+    expect(results.map(&:source)).to contain_exactly('ethiojobs')
+  end
+
+  it 'skips the whole run when Gemini enrichment is not configured' do
+    allow(Jobs::Enricher).to receive(:enabled?).and_return(false)
+
+    expect { described_class.call }.not_to change(Job, :count)
+    expect(described_class.call).to eq([])
+  end
+
+  describe 'enrichment wiring' do
+    include ActiveJob::TestHelper
+
+    context 'when enrichment is enabled' do
+      before { allow(Jobs::Enricher).to receive(:enabled?).and_return(true) }
+
+      it 'stamps a content hash and enqueues enrichment for a new job' do
+        expect { described_class.call }.to have_enqueued_job(Jobs::EnrichJob)
+        expect(Job.find_by(url: record[:url]).content_hash).to be_present
+      end
+
+      it 'does not re-enqueue when an enriched job is seen with unchanged content' do
+        described_class.call # first run creates + enqueues
+        Job.find_by(url: record[:url]).update!(
+          enrichment_status: 'enriched', enrichment_version: Jobs::Enricher::ENRICHMENT_VERSION
+        )
+
+        expect { described_class.call }.not_to have_enqueued_job(Jobs::EnrichJob)
+      end
+
+      it 're-enqueues and marks pending when the source content changes' do
+        described_class.call
+        job = Job.find_by(url: record[:url])
+        job.update!(enrichment_status: 'enriched', enrichment_version: Jobs::Enricher::ENRICHMENT_VERSION)
+
+        stub_scraper(Jobs::Scrapers::Ethiojobs, [record.merge(title: 'Senior Graphic Designer')])
+
+        expect { described_class.call }.to have_enqueued_job(Jobs::EnrichJob)
+        expect(job.reload.enrichment_status).to eq('pending')
+      end
+    end
+
+    it 'does not enqueue when enrichment is disabled' do
+      allow(Jobs::Enricher).to receive(:enabled?).and_return(false)
+
+      expect { described_class.call }.not_to have_enqueued_job(Jobs::EnrichJob)
+    end
+
+    it 'refreshes a job from a refresh-only marker without re-enqueuing' do
+      allow(Jobs::Enricher).to receive(:enabled?).and_return(true)
+      existing = create(:job, source: 'ethiojobs', url: record[:url], active: false)
+      stub_scraper(Jobs::Scrapers::Ethiojobs, [{ source: 'ethiojobs', url: record[:url], refresh_only: true }])
+
+      expect { described_class.call }.not_to have_enqueued_job(Jobs::EnrichJob)
+      expect(existing.reload).to have_attributes(active: true)
+    end
   end
 end

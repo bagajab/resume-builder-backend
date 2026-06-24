@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_23_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_24_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -307,11 +307,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_000003) do
     t.string "channel", default: "telegram", null: false
     t.datetime "created_at", null: false
     t.text "error"
+    t.string "feedback"
+    t.datetime "feedback_at"
     t.bigint "job_alert_id", null: false
     t.bigint "job_id", null: false
     t.float "match_score"
+    t.datetime "refine_token_consumed_at"
+    t.string "refine_token_jti"
     t.datetime "sent_at"
     t.integer "status", default: 0, null: false
+    t.bigint "telegram_message_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["job_alert_id", "job_id"], name: "index_job_alert_notifications_on_job_alert_id_and_job_id", unique: true
@@ -361,24 +366,45 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_000003) do
 
   create_table "jobs", force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.text "ai_description"
+    t.text "ai_summary"
+    t.text "application_instructions"
     t.string "apply_url"
+    t.string "benefits", default: [], null: false, array: true
     t.string "category"
     t.string "company_logo_url"
     t.string "company_name"
+    t.string "content_hash"
     t.datetime "created_at", null: false
     t.date "deadline_on"
     t.text "description"
     t.string "education_level"
     t.string "employment_type"
+    t.datetime "enriched_at"
+    t.string "enrichment_model"
+    t.string "enrichment_status", default: "pending", null: false
+    t.integer "enrichment_version"
     t.string "experience_level"
+    t.integer "experience_years_min"
     t.datetime "first_seen_at", null: false
+    t.string "languages", default: [], null: false, array: true
     t.datetime "last_seen_at", null: false
     t.string "location"
     t.jsonb "metadata", default: {}, null: false
     t.date "posted_on"
+    t.string "preferred_skills", default: [], null: false, array: true
+    t.text "qualifications", default: [], null: false, array: true
     t.string "region"
     t.boolean "remote", default: false, null: false
+    t.string "remote_type"
+    t.text "responsibilities", default: [], null: false, array: true
     t.string "salary"
+    t.string "salary_currency"
+    t.integer "salary_max"
+    t.integer "salary_min"
+    t.string "salary_period"
+    t.string "seniority"
+    t.string "skills", default: [], null: false, array: true
     t.string "source", null: false
     t.string "source_uid"
     t.text "summary"
@@ -387,8 +413,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_000003) do
     t.datetime "updated_at", null: false
     t.string "url", null: false
     t.index ["active"], name: "index_jobs_on_active"
+    t.index ["content_hash"], name: "index_jobs_on_content_hash"
     t.index ["deadline_on"], name: "index_jobs_on_deadline_on"
+    t.index ["enrichment_status"], name: "index_jobs_on_enrichment_status"
+    t.index ["languages"], name: "index_jobs_on_languages", using: :gin
     t.index ["posted_on"], name: "index_jobs_on_posted_on"
+    t.index ["remote_type"], name: "index_jobs_on_remote_type"
+    t.index ["seniority"], name: "index_jobs_on_seniority"
+    t.index ["skills"], name: "index_jobs_on_skills", using: :gin
     t.index ["source", "source_uid"], name: "index_jobs_on_source_and_source_uid"
     t.index ["source"], name: "index_jobs_on_source"
     t.index ["tags"], name: "index_jobs_on_tags", using: :gin

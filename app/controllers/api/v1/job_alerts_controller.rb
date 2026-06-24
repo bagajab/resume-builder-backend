@@ -4,6 +4,7 @@ module API
   module V1
     class JobAlertsController < API::V1::APIController
       include API::Concerns::JobAlertsFeature
+      include API::Concerns::JobAlertParams
 
       before_action :set_job_alert, only: %i[update destroy pause resume notifications]
 
@@ -56,13 +57,6 @@ module API
       def set_job_alert
         @job_alert = policy_scope(JobAlert).find(params.expect(:id))
         authorize @job_alert
-      end
-
-      def job_alert_params
-        params.expect(
-          job_alert: [:name, :remote_preference, :frequency, :salary_min, :salary_max, :salary_currency,
-                      { titles: [], keywords: [], locations: [], experience_levels: [], employment_types: [] }]
-        )
       end
     end
   end

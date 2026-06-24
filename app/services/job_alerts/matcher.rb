@@ -66,8 +66,13 @@ module JobAlerts
     def salary_ok?
       return true if alert.salary_min.blank?
 
-      parsed = parse_salary(job.salary)
-      parsed.nil? || parsed >= alert.salary_min # unknown salary never excludes
+      value = job_salary_value
+      value.nil? || value >= alert.salary_min # unknown salary never excludes
+    end
+
+    # Prefer the enriched numeric salary; fall back to parsing the raw string.
+    def job_salary_value
+      job.salary_max || job.salary_min || parse_salary(job.salary)
     end
 
     # ---- soft signals -------------------------------------------------------
@@ -101,9 +106,9 @@ module JobAlerts
     end
 
     def experience_score
-      return 0.5 if job.experience_level.blank? # neutral when the job omits it
+      job_level = [job.experience_level, job.seniority].compact.join(' ').downcase.strip
+      return 0.5 if job_level.blank? # neutral when the job omits it
 
-      job_level = job.experience_level.downcase
       matched = alert.experience_levels.any? do |level|
         needle = level.to_s.downcase.strip
         needle.present? && (job_level.include?(needle) || needle.include?(job_level))
@@ -115,8 +120,11 @@ module JobAlerts
 
     def haystack
       @haystack ||= [
-        job.title, job.summary, job.description, job.company_name, job.category,
-        Array(job.tags).join(' ')
+        job.title, job.summary, job.ai_summary, job.description, job.company_name,
+        job.category, job.seniority,
+        Array(job.tags).join(' '), Array(job.skills).join(' '),
+        Array(job.preferred_skills).join(' '), Array(job.responsibilities).join(' '),
+        Array(job.qualifications).join(' '), Array(job.benefits).join(' ')
       ].compact.join(' ').downcase
     end
 

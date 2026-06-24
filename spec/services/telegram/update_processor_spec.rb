@@ -68,4 +68,67 @@ describe Telegram::UpdateProcessor do
       expect(connection.phone_verified).to be(false)
     end
   end
+
+  describe 'callback_query feedback' do
+    let(:user) { create(:user) }
+    let(:job_alert) { create(:job_alert, user:) }
+    let(:notification) do
+      create(:job_alert_notification, :sent, user:, job_alert:, telegram_message_id: 1001)
+    end
+
+    before do
+      create(:telegram_connection, :linked, user:, telegram_user_id: 42, telegram_chat_id: 555)
+      allow(client).to receive(:answer_callback_query)
+      allow(client).to receive(:edit_message_reply_markup)
+    end
+
+    def callback(data:, from_id: 42)
+      process(
+        callback_query: {
+          id: 'cb1', data:, from: { id: from_id },
+          message: { message_id: 1001, chat: { id: 555 } }
+        }
+      )
+    end
+
+    it 'records positive feedback and strips the feedback buttons' do
+      callback(data: "fb:up:#{notification.id}")
+
+      expect(notification.reload.feedback).to eq('positive')
+      expect(client).to have_received(:answer_callback_query).with(hash_including(callback_query_id: 'cb1'))
+      expect(client).to have_received(:edit_message_reply_markup)
+    end
+
+    it 'records negative feedback, mints a refine token, and offers the Mini App' do
+      callback(data: "fb:down:#{notification.id}")
+
+      notification.reload
+      expect(notification.feedback).to eq('negative')
+      expect(notification.refine_token_jti).to be_present
+      expect(client).to have_received(:edit_message_reply_markup)
+    end
+
+    it 'rejects a tap from a different telegram user' do
+      callback(data: "fb:up:#{notification.id}", from_id: 9999)
+
+      expect(notification.reload.feedback).to be_nil
+      expect(client).to have_received(:answer_callback_query).with(hash_including(show_alert: true))
+      expect(client).not_to have_received(:edit_message_reply_markup)
+    end
+
+    it 'does not record feedback twice' do
+      notification.record_feedback!('positive')
+
+      callback(data: "fb:down:#{notification.id}")
+
+      expect(notification.reload.feedback).to eq('positive')
+      expect(client).not_to have_received(:edit_message_reply_markup)
+    end
+
+    it 'ignores callback data that is not a feedback action' do
+      callback(data: 'something:else')
+
+      expect(client).not_to have_received(:answer_callback_query)
+    end
+  end
 end

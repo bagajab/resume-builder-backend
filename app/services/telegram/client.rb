@@ -10,6 +10,9 @@ module Telegram
 
     BASE_URL = 'https://api.telegram.org'
     TIMEOUT = 30
+    # Update types we ask Telegram to deliver. callback_query carries inline-button
+    # taps (👍/👎 feedback); message carries /start + shared contacts.
+    ALLOWED_UPDATES = %w[message callback_query].freeze
 
     def initialize(token: Telegram.config.bot_token, logger: Rails.logger)
       @token = token
@@ -20,8 +23,19 @@ module Telegram
       request('sendMessage', chat_id:, text:, parse_mode: 'HTML', disable_web_page_preview: true, **)
     end
 
+    # Acknowledges an inline-button tap so Telegram stops the button spinner. The
+    # optional text is shown to the user as a toast (or alert when show_alert).
+    def answer_callback_query(callback_query_id:, text: nil, show_alert: false)
+      request('answerCallbackQuery', callback_query_id:, text:, show_alert:)
+    end
+
+    # Replaces the inline keyboard on an already-sent message.
+    def edit_message_reply_markup(chat_id:, message_id:, reply_markup:)
+      request('editMessageReplyMarkup', chat_id:, message_id:, reply_markup:)
+    end
+
     def set_webhook(url:, secret_token: nil)
-      request('setWebhook', url:, secret_token:, allowed_updates: %w[message])
+      request('setWebhook', url:, secret_token:, allowed_updates: ALLOWED_UPDATES)
     end
 
     def delete_webhook
@@ -29,7 +43,7 @@ module Telegram
     end
 
     def get_updates(offset: nil, timeout: 25)
-      request('getUpdates', offset:, timeout:, allowed_updates: %w[message])
+      request('getUpdates', offset:, timeout:, allowed_updates: ALLOWED_UPDATES)
     end
 
     private

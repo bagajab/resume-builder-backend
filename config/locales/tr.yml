@@ -1,0 +1,14 @@
+---
+tr:
+  telegram:
+    buttons:
+      view: "🔎 Tüm ayrıntılar →"
+      apply: "➡️ Şimdi başvur"
+    feedback:
+      good: "👍 Uygun ilan"
+      bad: "👎 Bana uygun değil"
+      refine: "✏️ Uyarıyı düzenle"
+      thanks: Geri bildiriminiz için teşekkürler! 🙌
+      refine_prompt: Anlaşıldı — daha iyi eşleşmeler için “Uyarıyı düzenle”ye dokunun.
+      already: Bu eşleşmeyi zaten yanıtladınız.
+      not_authorized: Bu eşleşme hesabınıza bağlı değil.
