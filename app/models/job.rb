@@ -72,7 +72,10 @@
 class Job < ApplicationRecord
   # Job boards we aggregate. Keep in sync with the scraper registry in
   # Jobs::ScraperService.
-  SOURCES = %w[ethiojobs ethiopian_reporter hahu_jobs].freeze
+  SOURCES = %w[
+    ethiojobs ethiopian_reporter hahu_jobs
+    etcareers enjera ngojobs guzojobs palmjobs
+  ].freeze
 
   EMPLOYMENT_TYPES = %w[
     full_time part_time contract temporary internship freelance volunteer other

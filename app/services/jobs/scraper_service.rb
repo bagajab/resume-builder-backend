@@ -8,10 +8,15 @@ module Jobs
   # listed is marked inactive. A source that fails (or returns nothing) never
   # deactivates that source's existing jobs.
   class ScraperService
-    # Ethiojobs only for now. EthiopianReporter and HahuJobs are temporarily
+    # Active source scrapers. EthiopianReporter and HahuJobs are temporarily
     # disabled — re-add them here to bring them back.
     SCRAPERS = [
-      Scrapers::Ethiojobs
+      Scrapers::Ethiojobs,
+      Scrapers::Etcareers,
+      Scrapers::Enjera,
+      Scrapers::Ngojobs,
+      Scrapers::Guzojobs,
+      Scrapers::Palmjobs
       # Scrapers::EthiopianReporter,
       # Scrapers::HahuJobs
     ].freeze

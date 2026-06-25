@@ -18,10 +18,16 @@ RSpec.describe Jobs::ScraperService do
   before do
     # Scraping is gated on Gemini enrichment being configured; enable it by default.
     allow(Jobs::Enricher).to receive(:enabled?).and_return(true)
-    # Stub every source so no network is touched; only ethiojobs returns data.
+    # Stub every registered source so no network is touched; only ethiojobs
+    # returns data. Disabled sources are stubbed too in case they're re-added.
     stub_scraper(Jobs::Scrapers::Ethiojobs, [record])
-    stub_scraper(Jobs::Scrapers::EthiopianReporter, [])
-    stub_scraper(Jobs::Scrapers::HahuJobs, [])
+    other_sources.each { |klass| stub_scraper(klass, []) }
+  end
+
+  # Registered scrapers other than Ethiojobs, plus the currently-disabled ones.
+  def other_sources
+    (Jobs::ScraperService::SCRAPERS - [Jobs::Scrapers::Ethiojobs]) +
+      [Jobs::Scrapers::EthiopianReporter, Jobs::Scrapers::HahuJobs]
   end
 
   def stub_scraper(klass, records)
@@ -71,8 +77,8 @@ RSpec.describe Jobs::ScraperService do
     ethiojobs = results.find { |r| r.source == 'ethiojobs' }
     expect(ethiojobs.created).to eq(1)
     expect(ethiojobs.upserted).to eq(1)
-    # Ethiojobs only for now (EthiopianReporter / HahuJobs are disabled).
-    expect(results.map(&:source)).to contain_exactly('ethiojobs')
+    # One result per registered scraper; only ethiojobs returned data here.
+    expect(results.map(&:source)).to match_array(Jobs::ScraperService::SCRAPERS.map(&:source))
   end
 
   it 'skips the whole run when Gemini enrichment is not configured' do
