@@ -24,9 +24,9 @@ describe 'API::V1::Resumes import' do
   end
   let(:pdf) { fixture_file_upload('sample_resume.pdf', 'application/pdf') }
 
-  # Resume creation defaults to the 'classic' template (Resume#assign_default_template).
+  # Resume creation defaults to the 'spotlight' template (Resume#assign_default_template).
   before do
-    create(:template, slug: 'classic', name: 'Classic')
+    create(:template, slug: 'spotlight', name: 'Spotlight')
     Prosopite.pause
   end
 

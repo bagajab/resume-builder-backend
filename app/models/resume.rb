@@ -99,7 +99,7 @@ class Resume < ApplicationRecord
   private
 
   def assign_default_template
-    self.template ||= Template.find_by(slug: 'classic')
+    self.template ||= Template.find_by(slug: 'spotlight')
   end
 
   def sync_published_at

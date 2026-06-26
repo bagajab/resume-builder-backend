@@ -15,7 +15,7 @@ ActiveAdmin.register Template do
   form do |f|
     f.inputs 'Template' do
       if f.object.new_record?
-        f.input :slug, hint: 'Stable code identifier (e.g. "classic"). Cannot be changed later.'
+        f.input :slug, hint: 'Stable code identifier (e.g. "spotlight"). Cannot be changed later.'
       else
         f.input :slug, input_html: { disabled: true },
                        hint: 'Locked — the apps reference templates by slug.'

@@ -34,10 +34,6 @@ module Seeds
     module_function
 
     TEMPLATES = [
-      { slug: 'classic', name: 'Classic', description: 'Traditional single-column layout with centered header' },
-      { slug: 'modern', name: 'Modern', description: 'Contemporary design with accent color bar' },
-      { slug: 'minimal', name: 'Minimal', description: 'Clean, whitespace-focused layout with subtle typography' },
-      { slug: 'professional', name: 'Professional', description: 'Two-column executive layout with accent headings and structured entries' },
       { slug: 'spotlight', name: 'Spotlight', description: 'Two-column layout with a bold indigo sidebar, skill meters, language rings and section badges' },
       { slug: 'double', name: 'Double Column', description: 'Clean two-column layout with a contact header, photo, icon-badged achievements and interests, courses, skills and dotted language meters' },
       { slug: 'crisp', name: 'Crisp', description: 'Bold full-width accent banner header with a two-column body — summary, experience, education and dotted languages alongside icon-led achievements, underlined skills, courses and interests' },
@@ -114,7 +110,7 @@ module Seeds
     def create_bililign_resume(user)
       return if user.resumes.originals.exists?
 
-      template = Template.find_by!(slug: 'professional')
+      template = Template.find_by!(slug: 'spotlight')
       full_name = 'Bililign Niguse Feredegn'
 
       resume = user.resumes.create!(
@@ -238,7 +234,7 @@ module Seeds
     def create_bagaja_resume(user)
       return if user.resumes.originals.exists?
 
-      template = Template.find_by!(slug: 'professional')
+      template = Template.find_by!(slug: 'spotlight')
       full_name = 'Bagaja Birhanu Nura'
 
       resume = user.resumes.create!(
@@ -475,7 +471,7 @@ module Seeds
     def create_base_resume(user, user_data, index)
       return if user.resumes.originals.exists?
 
-      template = Template.find_by!(slug: %w[classic modern minimal professional][index % 4])
+      template = Template.find_by!(slug: %w[spotlight double crisp elegant][index % 4])
       full_name = "#{user_data[:first_name]} #{user_data[:last_name]}"
 
       resume = user.resumes.create!(
