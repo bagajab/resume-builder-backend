@@ -3,7 +3,9 @@
 module API
   module V1
     class ResumesController < API::V1::APIController
-      before_action :set_resume, only: %i[show update destroy draft export_pdf duplicate public_profile]
+      before_action :set_resume,
+                    only: %i[show update destroy draft export_pdf duplicate public_profile
+                             generate_summary]
 
       def index
         @resumes = policy_scope(Resume).ordered.includes(:profile, :template)
@@ -70,6 +72,17 @@ module API
         authorize @resume, :update?
         @resume.update!(public_profile_params)
         render :show
+      end
+
+      # Generates a professional summary from the résumé's own data via the
+      # shared Gemini client. Returns the text for the editor to drop into the
+      # career_summary field; the user saves it through the normal draft path.
+      def generate_summary
+        authorize @resume, :update?
+        summary = Resumes::SummaryGenerator.new(@resume).call
+        render json: { career_summary: summary }
+      rescue Resumes::SummaryGenerator::Error => e
+        render json: { error: e.message }, status: :service_unavailable
       end
 
       def check_public_slug

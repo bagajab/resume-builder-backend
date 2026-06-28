@@ -66,6 +66,7 @@ Rails.application.routes.draw do
           patch :public_profile
           get :export_pdf
           post :duplicate
+          post :generate_summary
         end
 
         resource :profile, only: %i[create update], controller: 'resume_profiles' do
