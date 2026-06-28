@@ -38,7 +38,9 @@ class Resume < ApplicationRecord
   include PublicProfileSlug
 
   STATUSES = %w[draft completed].freeze
-  STEPS = 6
+  # Wizard step count — kept in sync with the frontend TOTAL_WIZARD_STEPS
+  # (personal, role, experience, education, skills, additional, summary).
+  STEPS = 7
 
   belongs_to :user
   belongs_to :template
