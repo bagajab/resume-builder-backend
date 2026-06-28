@@ -7,7 +7,7 @@ class AddYegnaTemplate < ActiveRecord::Migration[8.1]
 
   def up
     MigrationTemplate.find_or_create_by!(slug: 'yegna') do |template|
-      template.name = 'Yegna Editorial'
+      template.name = 'Editorial'
       template.description = 'Magazine-styled two-column layout with a deep-maroon serif sidebar carrying the photo, summary, comma-separated skills, languages and certifications beside a cream main column with ruled headings and dash bullets'
     end
   end

@@ -7,7 +7,7 @@ class AddAdwaTemplate < ActiveRecord::Migration[8.1]
 
   def up
     MigrationTemplate.find_or_create_by!(slug: 'adwa') do |template|
-      template.name = 'Adwa Sentinel'
+      template.name = 'Sentinel'
       template.description = 'Two-column layout with a deep-navy sidebar carrying the photo, summary, gradient skill rows, dot-meter languages and awards beside a cream main column with gold pill headings, diamond bullets and a vertical timeline rail'
     end
   end

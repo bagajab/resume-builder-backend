@@ -44,9 +44,9 @@ module Seeds
       { slug: 'vertex', name: 'Vertex', description: 'Single-column layout with heavy section rules, a blue accent, a two-column achievements grid, bar-meter languages and comma-separated core competencies' },
       { slug: 'aspect', name: 'Aspect', description: 'Two-column layout with a light sidebar carrying the photo, achievements, education, skills, courses and interests beside the main experience column' },
       { slug: 'timeline', name: 'Timeline', description: 'Single-column layout with a vertical timeline rail for experience and education, underlined skill chips and progress-bar languages' },
-      { slug: 'adwa', name: 'Adwa Sentinel', description: 'Two-column layout with a refined ink-navy sidebar carrying the photo, summary, gradient skill rows, dot-meter languages and awards beside a warm-ivory main column with Fraunces editorial rule headings, gold diamond bullets and a vertical timeline rail' },
-      { slug: 'yegna', name: 'Yegna Editorial', description: 'Magazine-styled two-column layout with a deep-maroon serif sidebar carrying the photo, summary, comma-separated skills, languages and certifications beside a cream main column with ruled headings and dash bullets' },
-      { slug: 'gondar', name: 'Slate Modern', description: 'Two-column layout with a charcoal-slate sidebar carrying the photo, summary, two-column skill grid, dot-meter languages and awards beside a cool-white main column with warm-copper Space Grotesk rule headings, dash bullets and a vertical timeline rail' }
+      { slug: 'adwa', name: 'Sentinel', description: 'Two-column layout with a refined ink-navy sidebar carrying the photo, summary, gradient skill rows, dot-meter languages and awards beside a warm-ivory main column with Fraunces editorial rule headings, gold diamond bullets and a vertical timeline rail' },
+      { slug: 'yegna', name: 'Editorial', description: 'Magazine-styled two-column layout with a deep-maroon serif sidebar carrying the photo, summary, comma-separated skills, languages and certifications beside a cream main column with ruled headings and dash bullets' },
+      { slug: 'gondar', name: 'Crest', description: 'Two-column layout with a charcoal-slate sidebar carrying the photo, summary, two-column skill grid, dot-meter languages and awards beside a cool-white main column with warm-copper Space Grotesk rule headings, dash bullets and a vertical timeline rail' }
     ].freeze
 
     def ensure_templates!
